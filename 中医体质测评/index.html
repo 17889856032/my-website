@@ -1,0 +1,2638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>中医体质测评</title>
+  <style>
+    /* 全局样式 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background-color: #FFF8DC; }
+    .page-container { min-height: 100vh; padding-bottom: 100px; }
+    .page-hidden { display: none !important; }
+
+    /* TabBar 样式 */
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 90px; background: white; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 -2px 10px rgba(139, 69, 19, 0.1); z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+    .tab-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; }
+    .tab-icon { font-size: 28px; margin-bottom: 4px; }
+    .tab-text { font-size: 14px; color: #666; }
+    .tab-item.active .tab-text { color: #995522; font-weight: 500; }
+    .tab-item.active .tab-icon { transform: scale(1.1); }
+
+    /* 通用容器 */
+    .container { padding: 15px; padding-bottom: calc(15px + env(safe-area-inset-bottom)); min-height: 100vh; box-sizing: border-box; }
+
+    /* 首页样式 */
+    .index-page .header { text-align: center; padding: 30px 0 20px; }
+    .index-page .logo { width: 60px; height: 60px; margin: 0 auto 10px; background: linear-gradient(135deg, #CD853F, #8B4513); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3); }
+    .index-page .logo-text { font-size: 30px; color: white; font-weight: bold; }
+    .index-page .main-title { display: block; font-size: 24px; font-weight: bold; color: #8B4513; margin-bottom: 5px; }
+    .index-page .sub-title { font-size: 13px; color: #A0522D; }
+
+    .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .card-header { display: flex; align-items: center; margin-bottom: 10px; }
+    .card-icon { font-size: 18px; margin-right: 6px; }
+    .card-title { font-size: 16px; font-weight: bold; color: #8B4513; }
+    .card-content { color: #555; font-size: 14px; line-height: 1.8; }
+    .content-text { display: block; margin-bottom: 10px; }
+    .info-list { padding-left: 10px; }
+    .info-item { display: flex; align-items: center; margin-bottom: 6px; }
+    .info-dot { color: #CD853F; margin-right: 6px; }
+    .info-text { font-size: 13px; }
+
+    .constitution-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+    .constitution-item { width: 30%; display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
+    .constitution-dot { width: 18px; height: 18px; border-radius: 50%; margin-bottom: 4px; }
+    .constitution-dot.balance { background: #FFD700; }
+    .constitution-dot.qi-def { background: #98FB98; }
+    .constitution-dot.yang-def { background: #87CEEB; }
+    .constitution-dot.yin-def { background: #DDA0DD; }
+    .constitution-dot.damp { background: #90EE90; }
+    .constitution-dot.damp-heat { background: #FFA07A; }
+    .constitution-dot.blood-stasis { background: #CD5C5C; }
+    .constitution-dot.qi-stagnation { background: #9370DB; }
+    .constitution-dot.special { background: #20B2AA; }
+    .constitution-name { font-size: 12px; color: #666; }
+
+    .btn-area { margin-top: 10px; }
+    .btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 48px; border-radius: 24px; font-size: 16px; margin-bottom: 10px; border: none; padding: 0; }
+    .btn-primary { background: linear-gradient(135deg, #CD853F, #8B4513); color: white; }
+    .btn-secondary { background: white; color: #8B4513; border: 1px solid #CD853F; }
+    .btn-icon { margin-right: 6px; font-size: 14px; }
+    .btn-text { font-weight: 500; }
+
+    .footer { text-align: center; padding: 20px 0; }
+    .footer-text { display: block; font-size: 12px; color: #999; margin-bottom: 4px; }
+    .footer-version { font-size: 11px; color: #BBB; }
+
+    /* 测评页样式 */
+    .test-page .progress-bar { width: 100%; height: 6px; background: #E8E8E8; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+    .test-page .progress-fill { height: 100%; background: linear-gradient(90deg, #CD853F, #8B4513); border-radius: 3px; transition: width 0.3s ease; }
+    .test-page .progress-text { text-align: center; font-size: 13px; color: #8B4513; margin-bottom: 15px; }
+
+    .question-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .question-tag { background: linear-gradient(135deg, #CD853F, #8B4513); color: white; font-size: 12px; padding: 4px 10px; border-radius: 10px; }
+    .question-number { font-size: 13px; color: #999; }
+    .question-content { margin-bottom: 20px; }
+    .question-text { font-size: 17px; color: #333; line-height: 1.6; }
+
+    .options-list { display: flex; flex-direction: column; }
+    .option-item { display: flex; align-items: center; padding: 12px 15px; border: 1px solid #E8E8E8; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s ease; }
+    .option-item.selected { border-color: #CD853F; background: rgba(205, 133, 63, 0.08); }
+    .option-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #CCC; margin-right: 10px; flex-shrink: 0; }
+    .option-item.selected .option-dot { background: #CD853F; border-color: #CD853F; }
+    .option-text { font-size: 15px; color: #555; }
+
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+    .nav-btn { width: 45%; height: 44px; border-radius: 22px; font-size: 15px; border: none; }
+    .nav-prev { background: white; color: #8B4513; border: 1px solid #CD853F; }
+    .nav-next { background: linear-gradient(135deg, #CD853F, #8B4513); color: white; }
+    .nav-btn[disabled] { opacity: 0.5; }
+
+    /* 结果页样式 */
+    .result-page .result-header { text-align: center; padding: 20px 0; }
+    .result-page .result-title { display: block; font-size: 22px; font-weight: bold; color: #8B4513; margin-bottom: 6px; }
+    .result-page .result-date { font-size: 13px; color: #999; }
+
+    .conclusion-content { text-align: center; }
+    .primary-constitution { margin-bottom: 12px; }
+    .constitution-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); }
+    .constitution-circle .constitution-name { font-size: 16px; font-weight: bold; color: white; }
+    .constitution-level { font-size: 14px; color: #CD853F; font-weight: 500; }
+    .conclusion-text { font-size: 14px; color: #555; line-height: 1.6; }
+
+    .chart-content { padding: 5px 0; }
+    .chart-item { display: flex; align-items: center; margin-bottom: 10px; }
+    .chart-label { width: 60px; font-size: 12px; color: #666; flex-shrink: 0; }
+    .chart-bar-container { flex: 1; height: 12px; background: #F0F0F0; border-radius: 6px; overflow: hidden; margin: 0 8px; }
+    .chart-bar { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+    .chart-score { width: 40px; font-size: 12px; color: #8B4513; text-align: right; }
+
+    .health-plan-section { margin-bottom: 12px; }
+    .section-header { display: flex; align-items: center; margin-bottom: 10px; }
+    .section-icon { font-size: 18px; margin-right: 6px; }
+    .section-title { font-size: 16px; font-weight: bold; color: #8B4513; }
+
+    .health-plan-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .plan-header { display: flex; align-items: center; margin-bottom: 8px; }
+    .plan-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
+    .plan-name { font-size: 16px; font-weight: bold; color: #333; }
+    .plan-intro { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 12px; }
+
+    .plan-detail { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #F0F0F0; }
+    .plan-detail:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .detail-title { display: flex; align-items: center; margin-bottom: 6px; }
+    .detail-icon { font-size: 14px; margin-right: 5px; }
+    .detail-title text { font-size: 14px; font-weight: bold; color: #8B4513; }
+
+    .footbath-title { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 8px; text-align: center; }
+
+    .prescription-categories { margin-bottom: 8px; }
+    .category-section { margin-bottom: 10px; padding: 10px; background: linear-gradient(135deg, #FFFDF5, #FFF8E7); border-radius: 8px; border: 1px solid #F5E6D3; }
+    .category-title { margin-bottom: 7px; }
+    .category-badge { display: inline-block; background: linear-gradient(90deg, #8B4513, #CD853F); color: white; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 6px rgba(139, 69, 19, 0.2); }
+    .category-ingredients { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ingredient-box { width: calc(50% - 3px); background: white; border-radius: 6px; padding: 8px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06); }
+    .ingredient-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .ingredient-box .ingredient-name { font-size: 14px; font-weight: 600; color: #333; }
+    .ingredient-box .ingredient-amount { font-size: 13px; font-weight: 600; color: #CD853F; }
+    .ingredient-box .ingredient-effect { font-size: 11px; color: #999; }
+
+    .simple-ingredients { margin-bottom: 8px; padding: 8px; background: #FFFDF5; border-radius: 6px; }
+    .simple-ingredient-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #F5E6D3; }
+    .simple-ingredient-item:last-child { border-bottom: none; }
+    .simple-name { font-size: 13px; color: #333; }
+    .simple-amount { font-size: 13px; color: #CD853F; }
+
+    .usage-text { font-size: 12px; color: #555; line-height: 1.6; display: block; margin-bottom: 6px; }
+    .note-text { font-size: 11px; color: #E74C3C; display: block; }
+
+    .prescription-box { margin-bottom: 10px; padding: 8px; background: #FFFDF5; border-radius: 6px; }
+    .prescription-box:last-child { margin-bottom: 0; }
+    .prescription-title { display: block; font-size: 14px; font-weight: 600; color: #8B4513; margin-bottom: 4px; }
+    .prescription-desc { font-size: 12px; color: #555; line-height: 1.6; }
+    .prescription-ing-list { margin-top: 5px; padding-top: 5px; border-top: 1px dashed #E8D5B7; }
+    .prescription-ing { font-size: 12px; color: #666; }
+
+    .detail-text { font-size: 13px; color: #555; line-height: 1.7; }
+
+    /* 膝关节测评首页 */
+    .knee-page .header { text-align: center; padding: 30px 0 20px; }
+    .knee-page .logo { width: 60px; height: 60px; margin: 0 auto 10px; background: linear-gradient(135deg, #4A90A4, #2E5C6E); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(74, 144, 164, 0.3); }
+    .knee-page .logo-text { font-size: 30px; color: white; font-weight: bold; }
+    .knee-page .main-title { display: block; font-size: 24px; font-weight: bold; color: #2E5C6E; margin-bottom: 5px; }
+    .knee-page .sub-title { font-size: 13px; color: #4A90A4; }
+
+    .dimension-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+    .dimension-item { width: 48%; background: linear-gradient(135deg, #FFF8E7, #FFFDF5); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 10px; }
+    .dimension-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+    .dimension-name { font-size: 14px; color: #666; }
+
+    .tips-card { background: linear-gradient(135deg, #FFF8E7, #FFFDF5); border-radius: 12px; padding: 15px; margin-top: 15px; }
+    .tips-header { display: flex; align-items: center; margin-bottom: 8px; }
+    .tips-icon { font-size: 18px; margin-right: 6px; }
+    .tips-title { font-size: 14px; font-weight: bold; color: #8B4513; }
+    .tips-content { font-size: 13px; color: #666; line-height: 1.6; }
+
+    /* 膝关节测评页 */
+    .knee-test-page .options-list .option-item { padding: 15px; }
+    .option-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #CCC; display: flex; align-items: center; justify-content: center; margin-right: 12px; }
+    .option-item.selected .option-radio { border-color: #4A90A4; }
+    .radio-inner { width: 10px; height: 10px; border-radius: 50%; background: #4A90A4; }
+
+    /* 膝关节结果页 */
+    .knee-result-page .result-header { padding: 25px 15px; text-align: center; }
+    .knee-result-page .result-icon { font-size: 48px; display: block; margin-bottom: 10px; }
+    .knee-result-page .result-title { font-size: 28px; font-weight: bold; color: white; display: block; margin-bottom: 8px; }
+    .knee-result-page .result-score { font-size: 16px; color: rgba(255,255,255,0.9); display: block; margin-bottom: 8px; }
+    .knee-result-page .result-desc { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+
+    .knee-result-page .content { padding-top: 15px; }
+    .western-card, .tcm-card, .care-card, .association-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+
+    .western-content .advice-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #F0F0F0; }
+    .western-content .advice-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .advice-title { display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .advice-desc { font-size: 13px; color: #666; line-height: 1.6; }
+
+    .tcm-section { display: flex; flex-direction: column; gap: 12px; }
+    .tcm-item { display: flex; align-items: flex-start; padding: 12px; background: #FFFDF5; border-radius: 8px; }
+    .tcm-icon { font-size: 20px; margin-right: 10px; }
+    .tcm-content { flex: 1; }
+    .tcm-title { display: block; font-size: 14px; font-weight: bold; color: #8B4513; margin-bottom: 4px; }
+    .tcm-desc { font-size: 13px; color: #666; line-height: 1.6; }
+
+    .care-list { display: flex; flex-direction: column; gap: 10px; }
+    .care-item { display: flex; align-items: flex-start; }
+    .care-dot { color: #CD853F; margin-right: 8px; font-size: 14px; }
+    .care-text { font-size: 13px; color: #555; line-height: 1.6; }
+
+    .association-desc { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 12px; }
+    .btn-link { background: none; border: 1px dashed #CD853F; color: #8B4513; }
+    .link-icon { margin-right: 6px; }
+    .link-text { font-weight: 500; }
+
+    /* 科普首页 */
+    .science-page .header { text-align: center; padding: 30px 0 15px; }
+    .science-page .page-title { display: block; font-size: 24px; font-weight: bold; color: #8B4513; margin-bottom: 5px; }
+    .science-page .page-subtitle { font-size: 13px; color: #A0522D; }
+    .science-page .intro-text { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; }
+
+    .entry-grid { display: flex; flex-direction: column; gap: 15px; }
+    .entry-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); position: relative; }
+    .constitution-card { border-left: 4px solid #CD853F; }
+    .arthritis-card { border-left: 4px solid #4A90A4; }
+    .entry-icon { font-size: 32px; display: block; margin-bottom: 10px; }
+    .entry-title { display: block; font-size: 18px; font-weight: bold; color: #333; margin-bottom: 6px; }
+    .entry-desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 10px; }
+    .entry-tags { display: flex; gap: 8px; }
+    .tag { font-size: 11px; color: #CD853F; background: rgba(205, 133, 63, 0.1); padding: 3px 8px; border-radius: 4px; }
+    .entry-arrow { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; color: #CCC; }
+
+    /* 体质科普列表页 */
+    .constitution-list-page .header { text-align: center; padding: 20px 0 15px; }
+    .constitution-list-page .page-title { display: block; font-size: 22px; font-weight: bold; color: #8B4513; margin-bottom: 5px; }
+    .constitution-list-page .page-subtitle { font-size: 13px; color: #A0522D; }
+
+    .constitution-list-page .constitution-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+    .constitution-list-page .constitution-card { width: 48%; background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); margin-bottom: 10px; }
+    .constitution-list-page .constitution-card .card-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+    .constitution-list-page .constitution-card .icon-text { font-size: 18px; font-weight: bold; color: white; }
+    .constitution-list-page .constitution-card .card-name { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 8px; }
+    .constitution-list-page .constitution-card .card-indicator { display: flex; align-items: center; justify-content: center; color: #999; }
+    .constitution-list-page .constitution-card .indicator-text { font-size: 12px; }
+    .constitution-list-page .constitution-card .indicator-arrow { font-size: 16px; margin-left: 4px; }
+
+    /* 体质详情页 */
+    .constitution-detail-page .header-section { padding: 25px 15px; text-align: center; }
+    .constitution-detail-page .constitution-name { font-size: 28px; font-weight: bold; color: white; }
+    .constitution-detail-page .content { padding: 15px; }
+    .constitution-detail-page .section { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .constitution-detail-page .section-header { display: flex; align-items: center; margin-bottom: 10px; }
+    .constitution-detail-page .section-icon { font-size: 18px; margin-right: 8px; }
+    .constitution-detail-page .section-title { font-size: 16px; font-weight: bold; color: #8B4513; }
+    .constitution-detail-page .section-text { font-size: 14px; color: #555; line-height: 1.7; }
+
+    .constitution-detail-page .footbath-card { background: linear-gradient(135deg, #FFFDF5, #FFF8E7); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+    .constitution-detail-page .prescription-title { display: block; font-size: 16px; font-weight: bold; color: #8B4513; text-align: center; margin-bottom: 10px; }
+    .constitution-detail-page .divider-dashed { border-bottom: 1px dashed #E8D5B7; margin: 10px 0; }
+
+    .constitution-detail-page .categories-container { margin-bottom: 15px; }
+    .constitution-detail-page .category-section { margin-bottom: 15px; }
+    .constitution-detail-page .category-header { margin-bottom: 10px; }
+    .constitution-detail-page .category-title { font-size: 14px; font-weight: bold; color: #8B4513; background: rgba(139, 69, 19, 0.1); padding: 5px 10px; border-radius: 4px; }
+    .constitution-detail-page .ingredients-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .constitution-detail-page .ingredient-card { width: calc(50% - 4px); background: white; border-radius: 8px; padding: 10px; text-align: center; }
+    .constitution-detail-page .ingredient-card .card-name { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 4px; }
+    .constitution-detail-page .ingredient-card .card-amount { display: block; font-size: 12px; color: #CD853F; margin-bottom: 4px; }
+    .constitution-detail-page .ingredient-card .card-effect { display: block; font-size: 11px; color: #999; }
+
+    .constitution-detail-page .simple-ingredients { margin-bottom: 15px; }
+    .constitution-detail-page .simple-label { font-size: 13px; font-weight: 500; color: #333; margin-bottom: 8px; display: block; }
+    .constitution-detail-page .simple-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #E8D5B7; }
+    .constitution-detail-page .simple-name { font-size: 13px; color: #333; }
+    .constitution-detail-page .simple-amount { font-size: 13px; color: #CD853F; }
+    .constitution-detail-page .simple-effect { font-size: 12px; color: #999; }
+
+    .constitution-detail-page .usage-box { background: white; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .constitution-detail-page .usage-label { font-size: 13px; font-weight: 500; color: #333; display: block; margin-bottom: 5px; }
+    .constitution-detail-page .usage-text { font-size: 12px; color: #555; line-height: 1.6; }
+
+    .constitution-detail-page .warning-box { background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 10px; }
+    .constitution-detail-page .warning-text { font-size: 12px; color: #E74C3C; line-height: 1.5; }
+
+    .constitution-detail-page .prescription-box { background: #FFFDF5; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .constitution-detail-page .prescription-name { display: block; font-size: 14px; font-weight: bold; color: #8B4513; margin-bottom: 8px; }
+    .constitution-detail-page .prescription-content { margin-bottom: 8px; }
+    .constitution-detail-page .prescription-label { font-size: 12px; font-weight: 500; color: #333; }
+    .constitution-detail-page .prescription-text { font-size: 12px; color: #666; }
+    .constitution-detail-page .prescription-usage { background: white; border-radius: 6px; padding: 10px; }
+
+    /* 关节炎科普页 */
+    .arthritis-page .header-section { text-align: center; padding: 20px 0 15px; }
+    .arthritis-page .header-title { display: block; font-size: 22px; font-weight: bold; color: #8B4513; margin-bottom: 5px; }
+    .arthritis-page .header-subtitle { font-size: 13px; color: #A0522D; }
+    .arthritis-page .content { padding: 0 15px; }
+
+    .arthritis-page .section-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .arthritis-page .section-header { display: flex; align-items: center; margin-bottom: 12px; }
+    .arthritis-page .section-icon { font-size: 18px; margin-right: 8px; }
+    .arthritis-page .section-title { font-size: 16px; font-weight: bold; color: #8B4513; }
+
+    .arthritis-page .type-list { display: flex; flex-direction: column; gap: 12px; }
+    .arthritis-page .type-item { padding: 12px; background: #FFFDF5; border-radius: 8px; }
+    .arthritis-page .type-header { display: flex; align-items: center; margin-bottom: 6px; }
+    .arthritis-page .type-name { font-size: 15px; font-weight: bold; color: #333; }
+    .arthritis-page .type-badge { font-size: 10px; color: white; background: #CD853F; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+    .arthritis-page .type-desc { font-size: 13px; color: #666; line-height: 1.6; }
+
+    .arthritis-page .care-grid { display: flex; flex-direction: column; gap: 12px; }
+    .arthritis-page .care-item { background: #FFFDF5; border-radius: 8px; padding: 12px; }
+    .arthritis-page .care-item.western { border-left: 3px solid #4A90A4; }
+    .arthritis-page .care-item.tcm { border-left: 3px solid #CD853F; }
+    .arthritis-page .care-header { display: flex; align-items: center; margin-bottom: 10px; }
+    .arthritis-page .care-icon { font-size: 18px; margin-right: 8px; }
+    .arthritis-page .care-title { font-size: 14px; font-weight: bold; color: #333; }
+    .arthritis-page .care-content { display: flex; flex-direction: column; gap: 8px; }
+    .arthritis-page .care-point { display: flex; justify-content: space-between; align-items: flex-start; }
+    .arthritis-page .point-label { font-size: 13px; font-weight: 500; color: #8B4513; width: 70px; }
+    .arthritis-page .point-desc { font-size: 12px; color: #666; flex: 1; }
+
+    .arthritis-page .tips-list { display: flex; flex-direction: column; gap: 10px; }
+    .arthritis-page .tip-item { display: flex; align-items: flex-start; }
+    .arthritis-page .tip-icon { font-size: 20px; margin-right: 10px; }
+    .arthritis-page .tip-content { flex: 1; }
+    .arthritis-page .tip-title { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 4px; }
+    .arthritis-page .tip-desc { font-size: 13px; color: #666; line-height: 1.5; }
+
+    .arthritis-page .prescription-list { margin-bottom: 12px; }
+    .arthritis-page .prescription-item { background: #FFFDF5; border-radius: 8px; padding: 12px; }
+    .arthritis-page .prescription-name { display: block; font-size: 14px; font-weight: bold; color: #8B4513; margin-bottom: 10px; }
+    .arthritis-page .prescription-ingredients { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .arthritis-page .ingredient { font-size: 13px; color: #666; background: white; padding: 4px 8px; border-radius: 4px; }
+    .arthritis-page .prescription-usage { font-size: 12px; color: #555; line-height: 1.6; }
+    .arthritis-page .prescription-note { display: flex; align-items: flex-start; background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 10px; }
+    .arthritis-page .note-icon { font-size: 14px; margin-right: 6px; }
+    .arthritis-page .note-text { font-size: 12px; color: #E74C3C; line-height: 1.5; }
+
+    /* 历史记录页 */
+    .history-page .header { padding: 20px 15px; }
+    .history-page .page-title { display: block; font-size: 22px; font-weight: bold; color: #8B4513; margin-bottom: 8px; }
+    .history-page .record-count { font-size: 13px; color: #999; }
+
+    .history-page .empty-state { text-align: center; padding: 40px 0; }
+    .history-page .empty-icon { font-size: 48px; display: block; margin-bottom: 15px; }
+    .history-page .empty-text { font-size: 16px; color: #666; display: block; margin-bottom: 20px; }
+
+    .history-page .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-page .history-item { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .history-page .history-content { padding: 15px; }
+    .history-page .result-summary { display: flex; align-items: center; margin-bottom: 12px; }
+    .history-page .constitution-dot-large { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; }
+    .history-page .constitution-char { font-size: 18px; font-weight: bold; color: white; }
+    .history-page .result-info { flex: 1; }
+    .history-page .result-constitution { display: block; font-size: 16px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .history-page .result-date { font-size: 12px; color: #999; }
+
+    .history-page .result-scores { margin-bottom: 12px; }
+    .history-page .mini-chart { display: flex; gap: 4px; height: 8px; }
+    .history-page .mini-bar { flex: 1; border-radius: 4px; }
+
+    .history-page .history-actions { display: flex; border-top: 1px solid #F0F0F0; }
+    .history-page .action-btn { flex: 1; height: 44px; border: none; background: none; font-size: 14px; }
+    .history-page .edit-btn { color: #8B4513; border-right: 1px solid #F0F0F0; }
+    .history-page .delete-btn { color: #E74C3C; }
+
+    .history-page .footer-btn { padding: 15px; }
+
+    /* 膝关节历史记录页 */
+    .knee-history-page .header-bar { display: flex; align-items: center; padding: 15px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .knee-history-page .back-btn { display: flex; align-items: center; margin-right: 20px; }
+    .knee-history-page .back-icon { font-size: 24px; color: #8B4513; }
+    .knee-history-page .back-text { font-size: 15px; color: #8B4513; }
+    .knee-history-page .page-title { font-size: 18px; font-weight: bold; color: #333; flex: 1; text-align: center; }
+
+    .knee-history-page .content { padding: 15px; }
+    .knee-history-page .records-list { display: flex; flex-direction: column; gap: 12px; }
+    .knee-history-page .record-item { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); display: flex; align-items: center; }
+    .knee-history-page .record-icon { font-size: 28px; margin-right: 12px; }
+    .knee-history-page .record-content { flex: 1; }
+    .knee-history-page .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .knee-history-page .record-type { font-size: 14px; color: #333; }
+    .knee-history-page .record-score { font-size: 14px; font-weight: bold; color: #4A90A4; }
+    .knee-history-page .record-time { font-size: 12px; color: #999; display: block; margin-bottom: 8px; }
+    .knee-history-page .record-result-bar { height: 6px; background: #F0F0F0; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+    .knee-history-page .result-progress { height: 100%; border-radius: 3px; }
+    .knee-history-page .record-desc { font-size: 12px; color: #666; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .knee-history-page .record-arrow { font-size: 20px; color: #CCC; margin-left: 10px; }
+
+    .knee-history-page .empty-state { text-align: center; padding: 40px 0; }
+    .knee-history-page .empty-icon { font-size: 48px; display: block; margin-bottom: 15px; }
+    .knee-history-page .empty-text { font-size: 16px; color: #666; display: block; margin-bottom: 8px; }
+    .knee-history-page .empty-hint { font-size: 13px; color: #999; display: block; margin-bottom: 20px; }
+    .knee-history-page .start-btn { background: linear-gradient(135deg, #4A90A4, #2E5C6E); color: white; border: none; border-radius: 24px; height: 48px; font-size: 16px; }
+
+    /* 我的页面 */
+    .my-page .profile-section { background: linear-gradient(135deg, #CD853F, #8B4513); border-radius: 0 0 24px 24px; padding: 30px 15px 20px; }
+    .my-page .profile-header { display: flex; align-items: center; margin-bottom: 20px; }
+    .my-page .avatar-wrapper { position: relative; margin-right: 15px; }
+    .my-page .avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
+    .my-page .avatar-icon { font-size: 32px; color: white; }
+    .my-page .avatar-edit { position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .my-page .edit-icon { font-size: 12px; }
+
+    .my-page .user-info { flex: 1; }
+    .my-page .user-name { display: block; font-size: 18px; font-weight: bold; color: white; margin-bottom: 4px; }
+    .my-page .user-desc { font-size: 13px; color: rgba(255,255,255,0.8); }
+
+    .my-page .detail-info { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+    .my-page .info-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    .my-page .info-item:last-child { border-bottom: none; }
+    .my-page .info-label { font-size: 14px; color: rgba(255,255,255,0.8); }
+    .my-page .info-value { font-size: 14px; color: white; }
+
+    .my-page .edit-btn { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 24px; height: 44px; }
+    .my-page .edit-btn .btn-icon { font-size: 14px; color: white; margin-right: 6px; }
+    .my-page .edit-btn .btn-text { font-size: 15px; color: white; }
+
+    .my-page .records-section { margin: 15px; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 12px rgba(139, 69, 19, 0.1); }
+    .my-page .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .my-page .section-title { font-size: 16px; font-weight: bold; color: #333; }
+    .my-page .section-count { font-size: 13px; color: #999; }
+
+    .my-page .records-list { display: flex; flex-direction: column; gap: 10px; }
+    .my-page .record-item { display: flex; align-items: center; padding: 12px; background: #FFFDF5; border-radius: 8px; }
+    .my-page .record-icon { font-size: 22px; margin-right: 12px; }
+    .my-page .record-content { flex: 1; }
+    .my-page .record-type { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .my-page .type-text { font-size: 14px; color: #333; }
+    .my-page .record-time { font-size: 12px; color: #999; }
+    .my-page .record-result { font-size: 13px; color: #666; }
+    .my-page .record-arrow { font-size: 18px; color: #CCC; }
+
+    .my-page .empty-state { text-align: center; padding: 25px 0; }
+    .my-page .empty-icon { font-size: 36px; display: block; margin-bottom: 10px; }
+    .my-page .empty-text { font-size: 14px; color: #666; display: block; margin-bottom: 4px; }
+    .my-page .empty-hint { font-size: 12px; color: #999; }
+
+    /* 模态框样式 */
+    .modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    .modal-content { width: 90%; max-width: 360px; background: white; border-radius: 16px; overflow: hidden; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #F0F0F0; }
+    .modal-title { font-size: 18px; font-weight: bold; color: #333; }
+    .modal-close { font-size: 24px; color: #999; cursor: pointer; }
+
+    .modal-body { padding: 20px; }
+    .form-item { margin-bottom: 15px; }
+    .form-item.half { width: calc(50% - 7px); }
+    .form-row { display: flex; gap: 14px; }
+    .form-label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
+    .form-input { width: 100%; height: 44px; border: 1px solid #E8E8E8; border-radius: 8px; padding: 0 12px; font-size: 15px; }
+
+    .gender-options { display: flex; gap: 10px; }
+    .gender-option { flex: 1; height: 44px; border: 1px solid #E8E8E8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #666; }
+    .gender-option.selected { border-color: #CD853F; background: rgba(205, 133, 63, 0.1); color: #8B4513; }
+
+    .modal-footer { display: flex; border-top: 1px solid #F0F0F0; }
+    .modal-btn { flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .modal-btn.cancel { color: #666; border-right: 1px solid #F0F0F0; }
+    .modal-btn.confirm { color: #8B4513; font-weight: 500; }
+
+    /* 页面顶部导航 */
+    .page-nav { display: flex; align-items: center; padding: 10px 15px; background: #8B4513; }
+    .page-nav .nav-back { display: flex; align-items: center; margin-right: 15px; }
+    .page-nav .nav-back-icon { font-size: 24px; color: white; }
+    .page-nav .nav-title { font-size: 17px; font-weight: bold; color: white; }
+
+    /* 确认对话框 */
+    .confirm-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+    .confirm-content { width: 85%; max-width: 320px; background: white; border-radius: 16px; padding: 25px; text-align: center; }
+    .confirm-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .confirm-desc { font-size: 14px; color: #666; margin-bottom: 20px; }
+    .confirm-buttons { display: flex; gap: 15px; }
+    .confirm-btn { flex: 1; height: 44px; border-radius: 22px; font-size: 15px; border: none; }
+    .confirm-btn.cancel { background: #F5F5F5; color: #666; }
+    .confirm-btn.ok { background: linear-gradient(135deg, #CD853F, #8B4513); color: white; }
+
+    /* Toast 提示 */
+    .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 25px; border-radius: 8px; font-size: 14px; z-index: 4000; }
+    .toast-success { background: rgba(76, 175, 80, 0.9); }
+    .toast-error { background: rgba(239, 83, 80, 0.9); }
+    .toast-info { background: rgba(66, 133, 244, 0.9); }
+  </style>
+</head>
+<body>
+  <!-- TabBar -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('index')">
+      <span class="tab-icon">🧘</span>
+      <span class="tab-text">体质测评</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('knee')">
+      <span class="tab-icon">🦵</span>
+      <span class="tab-text">膝关节测评</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('science')">
+      <span class="tab-icon">📚</span>
+      <span class="tab-text">科普</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('my')">
+      <span class="tab-icon">👤</span>
+      <span class="tab-text">我的</span>
+    </div>
+  </div>
+
+  <!-- 首页 -->
+  <div id="page-index" class="page-container index-page">
+    <div class="container">
+      <div class="header">
+        <div class="logo">
+          <span class="logo-text">中</span>
+        </div>
+        <span class="main-title">中医体质测评</span>
+        <span class="sub-title">GB/T 46939-2025 国家标准</span>
+      </div>
+
+      <div class="card intro-card">
+        <div class="card-header">
+          <span class="card-icon">📖</span>
+          <span class="card-title">国标说明</span>
+        </div>
+        <div class="card-content">
+          <span class="content-text">本测评依据中华人民共和国国家标准 GB/T 46939-2025《中医体质分类与判定》开发，共包含27道题目，涵盖平和质、气虚质、阳虚质、阴虚质、痰湿质、湿热质、血瘀质、气郁质、特禀质等9种体质类型。</span>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-dot">●</span>
+              <span class="info-text">测评时间约5分钟</span>
+            </div>
+            <div class="info-item">
+              <span class="info-dot">●</span>
+              <span class="info-text">共27道选择题</span>
+            </div>
+            <div class="info-item">
+              <span class="info-dot">●</span>
+              <span class="info-text">结果包含详细调理建议</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card feature-card">
+        <div class="card-header">
+          <span class="card-icon">🏥</span>
+          <span class="card-title">体质分类</span>
+        </div>
+        <div class="constitution-grid">
+          <div class="constitution-item">
+            <div class="constitution-dot balance"></div>
+            <span class="constitution-name">平和质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot qi-def"></div>
+            <span class="constitution-name">气虚质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot yang-def"></div>
+            <span class="constitution-name">阳虚质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot yin-def"></div>
+            <span class="constitution-name">阴虚质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot damp"></div>
+            <span class="constitution-name">痰湿质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot damp-heat"></div>
+            <span class="constitution-name">湿热质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot blood-stasis"></div>
+            <span class="constitution-name">血瘀质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot qi-stagnation"></div>
+            <span class="constitution-name">气郁质</span>
+          </div>
+          <div class="constitution-item">
+            <div class="constitution-dot special"></div>
+            <span class="constitution-name">特禀质</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-area">
+        <button class="btn btn-primary" onclick="startConstitutionTest()">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">开始测评</span>
+        </button>
+        <button class="btn btn-secondary" onclick="goToPage('history')">
+          <span class="btn-icon">📜</span>
+          <span class="btn-text">历史记录</span>
+        </button>
+      </div>
+
+      <div class="footer">
+        <span class="footer-text">© 2025 中医体质测评系统</span>
+        <span class="footer-version">版本 1.0.0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 体质测评页 -->
+  <div id="page-test" class="page-container test-page page-hidden">
+    <div class="container">
+      <div class="page-nav">
+        <div class="nav-back" onclick="goBack()">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <span class="nav-title">体质测评</span>
+      </div>
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill" style="width: 3.7%"></div>
+      </div>
+      <div id="progressText" class="progress-text">1 / 27</div>
+
+      <div class="question-card">
+        <div class="question-header">
+          <span id="questionTag" class="question-tag">平和质</span>
+          <span id="questionNumber" class="question-number">第 1 题</span>
+        </div>
+        <div class="question-content">
+          <span id="questionText" class="question-text">您精力充沛吗？</span>
+        </div>
+        <div class="options-list">
+          <div class="option-item" onclick="selectConstitutionAnswer(1)">
+            <div class="option-dot"></div>
+            <span class="option-text">1. 没有</span>
+          </div>
+          <div class="option-item" onclick="selectConstitutionAnswer(2)">
+            <div class="option-dot"></div>
+            <span class="option-text">2. 很少</span>
+          </div>
+          <div class="option-item" onclick="selectConstitutionAnswer(3)">
+            <div class="option-dot"></div>
+            <span class="option-text">3. 有时</span>
+          </div>
+          <div class="option-item" onclick="selectConstitutionAnswer(4)">
+            <div class="option-dot"></div>
+            <span class="option-text">4. 经常</span>
+          </div>
+          <div class="option-item" onclick="selectConstitutionAnswer(5)">
+            <div class="option-dot"></div>
+            <span class="option-text">5. 总是</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button id="prevBtn" class="nav-btn nav-prev" onclick="prevConstitutionQuestion()" disabled>上一题</button>
+        <button id="nextBtn" class="nav-btn nav-next" onclick="nextConstitutionQuestion()" disabled>下一题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 体质测评结果页 -->
+  <div id="page-result" class="page-container result-page page-hidden">
+    <div class="container">
+      <div class="result-header">
+        <span class="result-title">测评结果</span>
+        <span id="resultDate" class="result-date">2025/1/1 12:00:00</span>
+      </div>
+
+      <div class="card conclusion-card">
+        <div class="card-header">
+          <span class="card-icon">🏆</span>
+          <span class="card-title">体质判定</span>
+        </div>
+        <div class="conclusion-content">
+          <div class="primary-constitution">
+            <div id="constitutionCircle" class="constitution-circle" style="background: #FFD700">
+              <span class="constitution-name">平和质</span>
+            </div>
+            <span id="constitutionLevel" class="constitution-level">是</span>
+          </div>
+          <span id="conclusionText" class="conclusion-text">您的体质为平和质，身体状态良好，阴阳平衡，气血调和。</span>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">体质得分分布</span>
+        </div>
+        <div id="chartContent" class="chart-content">
+        </div>
+      </div>
+
+      <div class="health-plan-section">
+        <div class="section-header">
+          <span class="section-icon">🧘</span>
+          <span class="section-title">养生调理方案</span>
+        </div>
+
+        <div id="healthPlanCard" class="health-plan-card" style="border-left: 4px solid #FFD700">
+        </div>
+
+        <button class="btn btn-primary" onclick="goToPage('constitution-list')">
+          <span class="btn-icon">📚</span>
+          <span class="btn-text">查看更多科普</span>
+        </button>
+      </div>
+
+      <div class="btn-area">
+        <button class="btn btn-secondary" onclick="switchTab('index')">
+          <span class="btn-icon">🏠</span>
+          <span class="btn-text">返回首页</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 体质历史记录页 -->
+  <div id="page-history" class="page-container history-page page-hidden">
+    <div class="container">
+      <div class="page-nav">
+        <div class="nav-back" onclick="goBack()">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <span class="nav-title">历史记录</span>
+      </div>
+      <div class="header">
+        <span class="page-title">历史记录</span>
+        <span id="recordCount" class="record-count">共 0 条记录</span>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        <span class="empty-icon">📭</span>
+        <span class="empty-text">暂无测评记录</span>
+        <button class="btn btn-primary" onclick="startConstitutionTest()">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">开始首次测评</span>
+        </button>
+      </div>
+
+      <div id="historyList" class="history-list">
+      </div>
+
+      <div id="footerBtn" class="footer-btn">
+        <button class="btn btn-secondary" onclick="startConstitutionTest()">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">再次测评</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 膝关节测评首页 -->
+  <div id="page-knee" class="page-container knee-page page-hidden">
+    <div class="container">
+      <div class="header">
+        <div class="logo">
+          <span class="logo-text">🦵</span>
+        </div>
+        <span class="main-title">膝关节测评</span>
+        <span class="sub-title">专业膝关节健康评估</span>
+      </div>
+
+      <div class="card intro-card">
+        <div class="card-header">
+          <span class="card-icon">🦶</span>
+          <span class="card-title">测评说明</span>
+        </div>
+        <div class="card-content">
+          <span class="content-text">本测评包含12道题目，从疼痛、肿胀、僵硬、活动能力等多个维度评估您的膝关节健康状况。</span>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-dot">●</span>
+              <span class="info-text">测评时间约3分钟</span>
+            </div>
+            <div class="info-item">
+              <span class="info-dot">●</span>
+              <span class="info-text">共12道选择题</span>
+            </div>
+            <div class="info-item">
+              <span class="info-dot">●</span>
+              <span class="info-text">中西医结合建议</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dimension-grid">
+        <div class="dimension-item">
+          <span class="dimension-icon">⚡</span>
+          <span class="dimension-name">疼痛程度</span>
+        </div>
+        <div class="dimension-item">
+          <span class="dimension-icon">💧</span>
+          <span class="dimension-name">肿胀情况</span>
+        </div>
+        <div class="dimension-item">
+          <span class="dimension-icon">🔄</span>
+          <span class="dimension-name">活动能力</span>
+        </div>
+        <div class="dimension-item">
+          <span class="dimension-icon">⏱️</span>
+          <span class="dimension-name">僵硬程度</span>
+        </div>
+      </div>
+
+      <div class="btn-area">
+        <button class="btn btn-primary" onclick="startKneeTest()">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">开始测评</span>
+        </button>
+        <button class="btn btn-secondary" onclick="goToPage('knee-history')">
+          <span class="btn-icon">📜</span>
+          <span class="btn-text">测评记录</span>
+        </button>
+      </div>
+
+      <div class="tips-card">
+        <div class="tips-header">
+          <span class="tips-icon">💡</span>
+          <span class="tips-title">温馨提示</span>
+        </div>
+        <span class="tips-content">膝关节健康与年龄、体重、运动习惯密切相关。如有明显疼痛或活动受限，请及时就医检查。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 膝关节测评页 -->
+  <div id="page-knee-test" class="page-container knee-test-page page-hidden">
+    <div class="container">
+      <div class="page-nav">
+        <div class="nav-back" onclick="goBack()">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <span class="nav-title">膝关节测评</span>
+      </div>
+      <div class="progress-bar">
+        <div id="kneeProgressFill" class="progress-fill" style="width: 8.3%"></div>
+      </div>
+      <div id="kneeProgressText" class="progress-text">1 / 12</div>
+
+      <div class="question-card">
+        <div class="question-header">
+          <span id="kneeQuestionNumber" class="question-number">第 1 题</span>
+        </div>
+        <div class="question-content">
+          <span id="kneeQuestionText" class="question-text">您的膝关节是否有疼痛？</span>
+        </div>
+        <div class="options-list">
+          <div class="option-item" onclick="selectKneeAnswer(0)">
+            <div class="option-radio"><div class="radio-inner"></div></div>
+            <span class="option-text">完全不痛</span>
+          </div>
+          <div class="option-item" onclick="selectKneeAnswer(1)">
+            <div class="option-radio"><div class="radio-inner"></div></div>
+            <span class="option-text">偶尔轻微疼痛</span>
+          </div>
+          <div class="option-item" onclick="selectKneeAnswer(2)">
+            <div class="option-radio"><div class="radio-inner"></div></div>
+            <span class="option-text">经常疼痛</span>
+          </div>
+          <div class="option-item" onclick="selectKneeAnswer(3)">
+            <div class="option-radio"><div class="radio-inner"></div></div>
+            <span class="option-text">持续剧烈疼痛</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button id="kneePrevBtn" class="nav-btn nav-prev" onclick="prevKneeQuestion()" disabled>上一题</button>
+        <button id="kneeNextBtn" class="nav-btn nav-next" onclick="nextKneeQuestion()" disabled>下一题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 膝关节结果页 -->
+  <div id="page-knee-result" class="page-container knee-result-page page-hidden">
+    <div class="container">
+      <div id="kneeResultHeader" class="result-header" style="background: linear-gradient(135deg, #4A90A4, #2E5C6E)">
+        <span class="result-icon">🦵</span>
+        <span id="kneeResultTitle" class="result-title">轻度不适</span>
+        <span id="kneeResultScore" class="result-score">综合得分：15 / 48</span>
+        <span id="kneeResultDesc" class="result-desc">您的膝关节状况良好，但建议注意日常保养和适度运动。</span>
+      </div>
+
+      <div class="content">
+        <div class="western-card">
+          <div class="section-header">
+            <span class="section-icon">🔬</span>
+            <span class="section-title">西医建议</span>
+          </div>
+          <div id="westernContent" class="western-content">
+          </div>
+        </div>
+
+        <div class="tcm-card">
+          <div class="section-header">
+            <span class="section-icon">🌿</span>
+            <span class="section-title">中医调理</span>
+          </div>
+          <div id="tcmContent" class="tcm-section">
+          </div>
+        </div>
+
+        <div class="care-card">
+          <div class="section-header">
+            <span class="section-icon">💡</span>
+            <span class="section-title">日常注意事项</span>
+          </div>
+          <div id="careContent" class="care-list">
+          </div>
+        </div>
+
+        <div class="association-card">
+          <div class="section-header">
+            <span class="section-icon">📚</span>
+            <span class="section-title">相关科普</span>
+          </div>
+          <span class="association-desc">了解更多关节炎相关知识，科学养护膝关节。</span>
+          <button class="btn btn-link" onclick="goToPage('arthritis')">
+            <span class="link-icon">📖</span>
+            <span class="link-text">关节炎科普</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-area">
+        <button class="btn btn-secondary" onclick="switchTab('knee')">
+          <span class="btn-icon">🏠</span>
+          <span class="btn-text">返回首页</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 膝关节历史记录页 -->
+  <div id="page-knee-history" class="page-container knee-history-page page-hidden">
+    <div class="header-bar">
+      <div class="back-btn" onclick="goBack()">
+        <span class="back-icon">‹</span>
+        <span class="back-text">返回</span>
+      </div>
+      <span class="page-title">膝关节测评历史</span>
+    </div>
+    <div class="content">
+      <div id="kneeHistoryList" class="records-list">
+      </div>
+      <div id="kneeEmptyState" class="empty-state">
+        <span class="empty-icon">📋</span>
+        <span class="empty-text">暂无膝关节测评记录</span>
+        <span class="empty-hint">完成膝关节测评后，记录将显示在这里</span>
+        <button class="start-btn" onclick="startKneeTest()">立即测评</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 科普首页 -->
+  <div id="page-science" class="page-container science-page page-hidden">
+    <div class="container">
+      <div class="header">
+        <span class="page-title">中医科普</span>
+        <span class="page-subtitle">传承中医智慧，守护健康生活</span>
+      </div>
+      <span class="intro-text">了解中医体质知识，科学养生保健</span>
+
+      <div class="entry-grid">
+        <div class="entry-card constitution-card" onclick="goToPage('constitution-list')">
+          <span class="entry-icon">🧘</span>
+          <span class="entry-title">体质科普</span>
+          <span class="entry-desc">深入了解9种中医体质特征、形成原因及养生调理方法</span>
+          <div class="entry-tags">
+            <span class="tag">9种体质</span>
+            <span class="tag">养生方案</span>
+          </div>
+          <span class="entry-arrow">›</span>
+        </div>
+
+        <div class="entry-card arthritis-card" onclick="goToPage('arthritis')">
+          <span class="entry-icon">🦵</span>
+          <span class="entry-title">关节炎科普</span>
+          <span class="entry-desc">中西结合诊治专家共识，关节炎常见类型与养护要点</span>
+          <div class="entry-tags">
+            <span class="tag">关节炎</span>
+            <span class="tag">健康养护</span>
+          </div>
+          <span class="entry-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="tips-card arthritis-tips">
+        <div class="tips-header">
+          <span class="tips-icon">💡</span>
+          <span class="tips-title">温馨提示</span>
+        </div>
+        <span class="tips-content">以上科普内容仅供参考，不能替代专业医疗诊断。如有明显不适，请及时就医进行专业检查和治疗。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的页面 -->
+  <div id="page-my" class="page-container my-page page-hidden">
+    <div class="container">
+      <div class="profile-section">
+        <div class="profile-header">
+          <div class="avatar-wrapper">
+            <div class="avatar" onclick="uploadAvatar()">
+              <span class="avatar-icon">👤</span>
+            </div>
+            <div class="avatar-edit">
+              <span class="edit-icon">📷</span>
+            </div>
+          </div>
+          <div class="user-info">
+            <span id="userName" class="user-name">用户ID</span>
+            <span class="user-desc">健康管理中心</span>
+          </div>
+        </div>
+
+        <div class="detail-info">
+          <div class="info-item">
+            <span class="info-label">性别</span>
+            <span id="userGender" class="info-value">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">年龄</span>
+            <span id="userAge" class="info-value">- 岁</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">身高</span>
+            <span id="userHeight" class="info-value">- cm</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">体重</span>
+            <span id="userWeight" class="info-value">- kg</span>
+          </div>
+        </div>
+
+        <div class="edit-btn" onclick="editUserInfo()">
+          <span class="btn-icon">✏️</span>
+          <span class="btn-text">编辑信息</span>
+        </div>
+      </div>
+
+      <div class="records-section">
+        <div class="section-header">
+          <span class="section-title">📊 我的测评记录</span>
+          <span id="testRecordCount" class="section-count">0 条记录</span>
+        </div>
+
+        <div id="testRecordsList" class="records-list">
+        </div>
+
+        <div id="testRecordsEmpty" class="empty-state">
+          <span class="empty-icon">📝</span>
+          <span class="empty-text">暂无测评记录</span>
+          <span class="empty-hint">完成测评后，记录将显示在这里</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑信息弹窗 -->
+  <div id="editModal" class="modal-mask page-hidden" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">编辑个人信息</span>
+        <div class="modal-close" onclick="closeModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-item">
+          <span class="form-label">用户名</span>
+          <input id="editName" class="form-input" placeholder="请输入用户名" />
+        </div>
+        <div class="form-item">
+          <span class="form-label">性别</span>
+          <div class="gender-options">
+            <div id="genderMale" class="gender-option" onclick="selectGender('男')">男</div>
+            <div id="genderFemale" class="gender-option" onclick="selectGender('女')">女</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-item half">
+            <span class="form-label">年龄</span>
+            <input id="editAge" class="form-input" type="number" placeholder="请输入年龄" />
+          </div>
+          <div class="form-item half">
+            <span class="form-label">身高(cm)</span>
+            <input id="editHeight" class="form-input" type="number" placeholder="请输入身高" />
+          </div>
+        </div>
+        <div class="form-item">
+          <span class="form-label">体重(kg)</span>
+          <input id="editWeight" class="form-input" type="number" placeholder="请输入体重" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-btn cancel" onclick="closeModal()">取消</div>
+        <div class="modal-btn confirm" onclick="saveUserInfo()">保存</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认对话框 -->
+  <div id="confirmModal" class="confirm-modal page-hidden">
+    <div class="confirm-content">
+      <span id="confirmTitle" class="confirm-title">确认删除</span>
+      <span id="confirmDesc" class="confirm-desc">确定要删除这条测评记录吗？</span>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel" onclick="hideConfirmModal()">取消</button>
+        <button class="confirm-btn ok" onclick="confirmDelete()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast page-hidden"></div>
+
+  <!-- 体质科普列表页 -->
+  <div id="page-constitution-list" class="page-container constitution-list-page page-hidden">
+    <div class="container">
+      <div class="page-nav">
+        <div class="nav-back" onclick="goBack()">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <span class="nav-title">中医体质科普</span>
+      </div>
+      <div class="header">
+        <span class="page-title">中医体质科普</span>
+        <span class="page-subtitle">了解自身体质，科学养生</span>
+      </div>
+
+      <div id="constitutionListGrid" class="constitution-grid">
+      </div>
+
+      <div class="tips-card">
+        <div class="tips-header">
+          <span class="tips-icon">💡</span>
+          <span class="tips-title">温馨提示</span>
+        </div>
+        <span class="tips-content">体质反映的是人在一定时期内的生理状态。以上养生方案仅供参考，具体调理请根据个人实际情况并在专业人士指导下进行。如有明显不适，请及时就医。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 体质详情页 -->
+  <div id="page-constitution-detail" class="page-container constitution-detail-page page-hidden">
+    <div class="container">
+      <div class="page-nav">
+        <div class="nav-back" onclick="goBack()">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <span class="nav-title">体质详情</span>
+      </div>
+      <div id="constitutionDetailHeader" class="header-section" style="background: #FFD700">
+        <span id="constitutionDetailName" class="constitution-name">平和质</span>
+      </div>
+      <div class="content">
+        <div id="constitutionDetailContent" class="constitution-detail-content">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关节炎科普页 -->
+  <div id="page-arthritis" class="page-container arthritis-page page-hidden">
+    <div class="container">
+      <div class="page-nav">
+        <div class="nav-back" onclick="goBack()">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <span class="nav-title">关节炎科普</span>
+      </div>
+      <div class="header-section">
+        <span class="header-title">关节炎科普</span>
+        <span class="header-subtitle">中西结合诊治专家共识</span>
+      </div>
+      <div class="content">
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">📋</span>
+            <span class="section-title">常见类型</span>
+          </div>
+          <div class="type-list">
+            <div class="type-item">
+              <div class="type-header">
+                <span class="type-name">骨关节炎</span>
+                <span class="type-badge">最常见</span>
+              </div>
+              <span class="type-desc">最常见的关节炎类型，主要影响中老年人，表现为关节软骨磨损、骨质增生。常见症状包括关节疼痛、僵硬和活动受限。</span>
+            </div>
+            <div class="type-item">
+              <div class="type-header">
+                <span class="type-name">类风湿关节炎</span>
+                <span class="type-badge">自身免疫</span>
+              </div>
+              <span class="type-desc">一种自身免疫性疾病，表现为关节肿胀、疼痛、僵硬，可能导致关节畸形。常累及双手、双脚的小关节。</span>
+            </div>
+            <div class="type-item">
+              <div class="type-header">
+                <span class="type-name">痛风性关节炎</span>
+                <span class="type-badge">代谢性</span>
+              </div>
+              <span class="type-desc">因血尿酸过高导致尿酸盐结晶沉积引起，常突然发作，关节红肿热痛，常见于大脚趾关节。</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">⚕️</span>
+            <span class="section-title">中西医结合养护要点</span>
+          </div>
+          <div class="care-grid">
+            <div class="care-item western">
+              <div class="care-header">
+                <span class="care-icon">🔬</span>
+                <span class="care-title">西医建议</span>
+              </div>
+              <div class="care-content">
+                <div class="care-point">
+                  <span class="point-label">休息</span>
+                  <span class="point-desc">避免过度使用关节，适当休息</span>
+                </div>
+                <div class="care-point">
+                  <span class="point-label">康复锻炼</span>
+                  <span class="point-desc">进行适度的关节活动和肌肉锻炼</span>
+                </div>
+                <div class="care-point">
+                  <span class="point-label">体重管理</span>
+                  <span class="point-desc">控制体重减轻关节负担</span>
+                </div>
+                <div class="care-point">
+                  <span class="point-label">就医提示</span>
+                  <span class="point-desc">症状严重时及时就医检查</span>
+                </div>
+              </div>
+            </div>
+            <div class="care-item tcm">
+              <div class="care-header">
+                <span class="care-icon">🌿</span>
+                <span class="care-title">中医调理</span>
+              </div>
+              <div class="care-content">
+                <div class="care-point">
+                  <span class="point-label">热敷</span>
+                  <span class="point-desc">温经散寒，促进血液循环</span>
+                </div>
+                <div class="care-point">
+                  <span class="point-label">艾灸</span>
+                  <span class="point-desc">灸治膝眼、足三里等穴位</span>
+                </div>
+                <div class="care-point">
+                  <span class="point-label">足浴</span>
+                  <span class="point-desc">使用活血通络中药泡脚</span>
+                </div>
+                <div class="care-point">
+                  <span class="point-label">外用</span>
+                  <span class="point-desc">中药膏剂或贴敷治疗</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">💡</span>
+            <span class="section-title">日常注意事项</span>
+          </div>
+          <div class="tips-list">
+            <div class="tip-item">
+              <span class="tip-icon">🧣</span>
+              <div class="tip-content">
+                <span class="tip-title">注意关节保暖</span>
+                <span class="tip-desc">避免受凉受潮，天气变化时及时增添衣物</span>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-icon">🚶</span>
+              <div class="tip-content">
+                <span class="tip-title">避免过度负重</span>
+                <span class="tip-desc">减少长时间站立和行走，避免搬重物</span>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-icon">🏋️</span>
+              <div class="tip-content">
+                <span class="tip-title">科学运动</span>
+                <span class="tip-desc">选择游泳、骑自行车等对关节压力小的运动</span>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-icon">👟</span>
+              <div class="tip-content">
+                <span class="tip-title">选择合适鞋履</span>
+                <span class="tip-desc">穿舒适的鞋子，避免穿高跟鞋或不合适的鞋</span>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-icon">🧘</span>
+              <div class="tip-content">
+                <span class="tip-title">保持正确姿势</span>
+                <span class="tip-desc">避免关节过度弯曲，坐站姿势正确</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">🛁</span>
+            <span class="section-title">推荐足浴配方</span>
+          </div>
+          <div class="prescription-list">
+            <div class="prescription-item">
+              <span class="prescription-name">活血化瘀足浴方</span>
+              <div class="prescription-ingredients">
+                <span class="ingredient">艾叶 10g</span>
+                <span class="ingredient">红花 6g</span>
+                <span class="ingredient">当归 12g</span>
+                <span class="ingredient">川芎 10g</span>
+                <span class="ingredient">干姜 6g</span>
+              </div>
+              <span class="prescription-usage">加水2000ml煎煮30分钟，待水温降至40℃左右时泡脚，每次20-30分钟，每周3-4次。</span>
+            </div>
+          </div>
+          <div class="prescription-note">
+            <span class="note-icon">⚠️</span>
+            <span class="note-text">孕妇禁用；月经量多者经期停用；有出血倾向者慎用。</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tips-card arthritis-tips">
+        <div class="tips-header">
+          <span class="tips-icon">💡</span>
+          <span class="tips-title">温馨提示</span>
+        </div>
+        <span class="tips-content">以上科普内容仅供参考，不能替代专业医疗诊断。如有明显不适，请及时就医进行专业检查和治疗。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的页面 -->
+  <div id="page-my" class="page-container my-page page-hidden">
+    <div class="container">
+      <div class="profile-section">
+        <div class="profile-header">
+          <div class="avatar-wrapper">
+            <div class="avatar" onclick="uploadAvatar()">
+              <span class="avatar-icon">👤</span>
+            </div>
+            <div class="avatar-edit">
+              <span class="edit-icon">📷</span>
+            </div>
+          </div>
+          <div class="user-info">
+            <span id="userName" class="user-name">用户ID</span>
+            <span class="user-desc">健康管理中心</span>
+          </div>
+        </div>
+
+        <div class="detail-info">
+          <div class="info-item">
+            <span class="info-label">性别</span>
+            <span id="userGender" class="info-value">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">年龄</span>
+            <span id="userAge" class="info-value">- 岁</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">身高</span>
+            <span id="userHeight" class="info-value">- cm</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">体重</span>
+            <span id="userWeight" class="info-value">- kg</span>
+          </div>
+        </div>
+
+        <div class="edit-btn" onclick="editUserInfo()">
+          <span class="btn-icon">✏️</span>
+          <span class="btn-text">编辑信息</span>
+        </div>
+      </div>
+
+      <div class="records-section">
+        <div class="section-header">
+          <span class="section-title">📊 我的测评记录</span>
+          <span id="testRecordCount" class="section-count">0 条记录</span>
+        </div>
+
+        <div id="testRecordsList" class="records-list">
+        </div>
+
+        <div id="testRecordsEmpty" class="empty-state">
+          <span class="empty-icon">📝</span>
+          <span class="empty-text">暂无测评记录</span>
+          <span class="empty-hint">完成测评后，记录将显示在这里</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑信息弹窗 -->
+  <div id="editModal" class="modal-mask page-hidden" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">编辑个人信息</span>
+        <div class="modal-close" onclick="closeModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-item">
+          <span class="form-label">用户名</span>
+          <input id="editName" class="form-input" placeholder="请输入用户名" />
+        </div>
+        <div class="form-item">
+          <span class="form-label">性别</span>
+          <div class="gender-options">
+            <div id="genderMale" class="gender-option" onclick="selectGender('男')">男</div>
+            <div id="genderFemale" class="gender-option" onclick="selectGender('女')">女</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-item half">
+            <span class="form-label">年龄</span>
+            <input id="editAge" class="form-input" type="number" placeholder="请输入年龄" />
+          </div>
+          <div class="form-item half">
+            <span class="form-label">身高(cm)</span>
+            <input id="editHeight" class="form-input" type="number" placeholder="请输入身高" />
+          </div>
+        </div>
+        <div class="form-item">
+          <span class="form-label">体重(kg)</span>
+          <input id="editWeight" class="form-input" type="number" placeholder="请输入体重" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-btn cancel" onclick="closeModal()">取消</div>
+        <div class="modal-btn confirm" onclick="saveUserInfo()">保存</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认对话框 -->
+  <div id="confirmModal" class="confirm-modal page-hidden">
+    <div class="confirm-content">
+      <span id="confirmTitle" class="confirm-title">确认删除</span>
+      <span id="confirmDesc" class="confirm-desc">确定要删除这条测评记录吗？</span>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel" onclick="hideConfirmModal()">取消</button>
+        <button class="confirm-btn ok" onclick="confirmDelete()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast page-hidden"></div>
+
+  <script>
+// ===== 核心数据定义 =====
+const questions = [
+  { id: 1, text: '您精力充沛吗？', type: '平和质' },
+  { id: 2, text: '您容易疲劳吗？', type: '平和质', reverse: true },
+  { id: 3, text: '您说话声音低弱无力吗？', type: '气虚质' },
+  { id: 4, text: '您容易气短、喘息吗？', type: '气虚质' },
+  { id: 5, text: '您活动量稍大就容易出虚汗吗？', type: '气虚质' },
+  { id: 6, text: '您手脚发凉吗？', type: '阳虚质' },
+  { id: 7, text: '您怕冷、冬天更明显吗？', type: '阳虚质' },
+  { id: 8, text: '您喜欢热饮吗？', type: '阳虚质' },
+  { id: 9, text: '您手心脚心发热吗？', type: '阴虚质' },
+  { id: 10, text: '您口干咽燥吗？', type: '阴虚质' },
+  { id: 11, text: '您大便干燥吗？', type: '阴虚质' },
+  { id: 12, text: '您面部或鼻部有油腻感吗？', type: '痰湿质' },
+  { id: 13, text: '您腹部肥满松软吗？', type: '痰湿质' },
+  { id: 14, text: '您脸上容易长痤疮吗？', type: '湿热质' },
+  { id: 15, text: '您口苦口干吗？', type: '湿热质' },
+  { id: 16, text: '您大便黏滞不畅或便后有不尽感吗？', type: '湿热质' },
+  { id: 17, text: '您身体有固定的疼痛或肿块吗？', type: '血瘀质' },
+  { id: 18, text: '您面色暗沉或有瘀斑、瘀点吗？', type: '血瘀质' },
+  { id: 19, text: '您容易健忘吗？', type: '血瘀质' },
+  { id: 20, text: '您情绪低落、闷闷不乐吗？', type: '气郁质' },
+  { id: 21, text: '您容易焦虑、烦躁吗？', type: '气郁质' },
+  { id: 22, text: '您容易感到精神紧张吗？', type: '气郁质' },
+  { id: 23, text: '您容易过敏吗？', type: '特禀质' },
+  { id: 24, text: '您皮肤容易起荨麻疹吗？', type: '特禀质' },
+  { id: 25, text: '您对花粉、尘螨等过敏吗？', type: '特禀质' },
+  { id: 26, text: '您睡眠质量差吗？', type: '平和质', reverse: true },
+  { id: 27, text: '您食欲不佳吗？', type: '平和质', reverse: true }
+];
+
+const constitutionConfig = {
+  '平和质': { questions: [1, 2, 26, 27], itemCount: 5, color: '#FFD700' },
+  '气虚质': { questions: [3, 4, 5], itemCount: 3, color: '#98FB98' },
+  '阳虚质': { questions: [6, 7, 8], itemCount: 3, color: '#87CEEB' },
+  '阴虚质': { questions: [9, 10, 11], itemCount: 3, color: '#DDA0DD' },
+  '痰湿质': { questions: [12, 13], itemCount: 2, color: '#90EE90' },
+  '湿热质': { questions: [14, 15, 16], itemCount: 3, color: '#FFA07A' },
+  '血瘀质': { questions: [17, 18, 19], itemCount: 3, color: '#CD5C5C' },
+  '气郁质': { questions: [20, 21, 22], itemCount: 3, color: '#9370DB' },
+  '特禀质': { questions: [23, 24, 25], itemCount: 3, color: '#20B2AA' }
+};
+
+const constitutionHealthPlans = {
+  '平和质': {
+    name: '平和质', color: '#FFD700',
+    intro: '平和质是理想的健康体质状态，阴阳平衡，气血调和。这类人群面色红润，精力充沛，睡眠良好，食欲正常，二便调畅。',
+    footbath: null,
+    prescriptions: [],
+    conditioning: {
+      diet: '饮食均衡，多吃五谷杂粮、蔬菜水果，适量摄入优质蛋白。遵循"早饭好、午饭饱、晚饭少"的原则。',
+      exercise: '坚持适度运动，如散步、太极拳、八段锦、游泳等，每周3-5次，每次30-60分钟。',
+      lifestyle: '作息规律，早睡早起，保证7-8小时睡眠。保持心情舒畅，避免过度劳累和情绪波动。'
+    }
+  },
+  '气虚质': {
+    name: '气虚质', color: '#98FB98',
+    intro: '气虚质人群元气不足，主要表现为容易疲劳，气短懒言，声音低弱，易出虚汗，免疫力低下，容易感冒。',
+    footbath: {
+      title: '补气固本足浴包',
+      usage: '将以上药材加水2000ml，煎煮30分钟后，取药液倒入泡脚盆中，待温度降至40℃左右时泡脚，每次20-30分钟，每周3-4次。',
+      note: '感冒发热时停用，阴虚火旺者慎用。',
+      categories: [
+        { name: '黎药基础（君药）', items: [{ name: '五指毛桃', amount: '16g', effect: '益气补虚' }, { name: '络石藤', amount: '16g', effect: '祛风通络' }] },
+        { name: '专属调理（臣佐药）', items: [{ name: '党参', amount: '6g', effect: '健脾益肺' }, { name: '紫苏叶', amount: '2g', effect: '理气宽中' }, { name: '黄芪', amount: '4g', effect: '补气升阳' }] },
+        { name: '防虫防潮（使药）', items: [{ name: '艾叶', amount: '2g', effect: '温经驱虫' }] }
+      ]
+    },
+    prescriptions: [],
+    conditioning: {
+      diet: '多食补气食物，如山药、黄芪、人参、党参、红枣、桂圆、鸡肉、牛肉、鲫鱼等。可用黄芪、党参泡水代茶饮。',
+      exercise: '选择舒缓运动，如散步、慢跑、太极拳、八段锦、瑜伽等，避免剧烈运动和过度出汗。',
+      lifestyle: '保证充足睡眠（8小时以上），避免过度劳累和思虑过度。注意保暖，预防感冒。'
+    }
+  },
+  '阳虚质': {
+    name: '阳虚质', color: '#87CEEB',
+    intro: '阳虚质人群阳气不足，主要表现为畏寒怕冷，手脚冰凉，喜热饮，耐夏不耐冬，容易腹泻，小便清长。',
+    footbath: {
+      title: '温阳散寒足浴包',
+      usage: '将以上药材加水2000ml，煎煮30分钟后，取药液倒入泡脚盆中，待温度降至42℃左右时泡脚（水温可比其他体质稍高），每次25-30分钟，每周3-4次。',
+      note: '高血压、心脏病患者慎用或缩短泡脚时间；阴虚内热者禁用。',
+      categories: [
+        { name: '黎药基础（君药）', items: [{ name: '山苍树根', amount: '16g', effect: '温肾助阳' }, { name: '牛大力', amount: '16g', effect: '补虚润肺' }] },
+        { name: '专属调理（臣佐药）', items: [{ name: '艾叶', amount: '6g', effect: '温经止血' }, { name: '干姜', amount: '3g', effect: '温中散寒' }, { name: '肉桂', amount: '3g', effect: '补火助阳' }] },
+        { name: '防虫防潮（使药）', items: [{ name: '花椒', amount: '2g', effect: '温中止痛' }] }
+      ]
+    },
+    prescriptions: [],
+    conditioning: {
+      diet: '多食温热食物，如羊肉、狗肉、韭菜、生姜、桂圆、荔枝、核桃、板栗等。避免生冷食物，如冰激凌、冷饮、西瓜、苦瓜等。',
+      exercise: '进行温和运动，如散步、慢跑、太极拳、站桩等，避免游泳等寒凉环境中的运动。适当晒太阳，尤其是背部。',
+      lifestyle: '注意保暖，尤其是腰腹和足部。春夏养阳，秋冬注意避寒。可用艾灸关元、气海、足三里等穴位。'
+    }
+  },
+  '阴虚质': {
+    name: '阴虚质', color: '#DDA0DD',
+    intro: '阴虚质人群阴液不足，主要表现为手足心热，口干咽燥，潮热盗汗，大便干结，眼睛干涩，舌红少苔。',
+    footbath: {
+      title: '滋阴清热足浴包',
+      ingredients: [
+        { name: '麦冬', amount: '30g', effect: '养阴润肺' },
+        { name: '玄参', amount: '20g', effect: '清热凉血' },
+        { name: '生地', amount: '20g', effect: '滋阴生津' },
+        { name: '知母', amount: '15g', effect: '清热泻火' },
+        { name: '丹皮', amount: '15g', effect: '清热凉血' },
+        { name: '五味子', amount: '10g', effect: '收敛固涩' }
+      ],
+      usage: '将以上药材加水2000ml，煎煮30分钟后，取药液倒入泡脚盆中，待温度降至38-40℃时泡脚（水温宜偏低），每次20-25分钟，每周3-4次。',
+      note: '孕妇禁用；腹泻者停用；泡脚时间不宜过长。'
+    },
+    prescriptions: [],
+    conditioning: {
+      diet: '多食滋阴食物，如银耳、百合、枸杞、麦冬、沙参、玉竹、鸭肉、甲鱼、蜂蜜等。避免辛辣刺激食物，如辣椒、生姜、大蒜等。',
+      exercise: '选择舒缓运动，如太极拳、瑜伽、散步等，避免高温环境和剧烈运动。保持室内湿度适宜。',
+      lifestyle: '保证充足睡眠（8小时以上），避免熬夜和情绪激动。可用石斛、麦冬泡水代茶饮。'
+    }
+  },
+  '痰湿质': {
+    name: '痰湿质', color: '#90EE90',
+    intro: '痰湿质人群体内痰湿积聚，主要表现为体型肥胖，腹部肥满，面部油腻，痰多黏稠，胸闷，大便黏滞。',
+    footbath: {
+      title: '祛湿化痰足浴包',
+      ingredients: [
+        { name: '茯苓', amount: '30g', effect: '利水渗湿' },
+        { name: '薏苡仁', amount: '30g', effect: '健脾利湿' },
+        { name: '陈皮', amount: '15g', effect: '理气化痰' },
+        { name: '法半夏', amount: '15g', effect: '燥湿化痰' },
+        { name: '苍术', amount: '15g', effect: '燥湿健脾' },
+        { name: '枳实', amount: '10g', effect: '破气消积' }
+      ],
+      usage: '将以上药材加水2000ml，煎煮30分钟后，取药液倒入泡脚盆中，待温度降至40℃左右时泡脚，每次25-30分钟，每周4-5次。',
+      note: '孕妇禁用；阴虚火旺者慎用；泡脚后注意保暖。'
+    },
+    prescriptions: [],
+    conditioning: {
+      diet: '清淡饮食，多食健脾利湿食物，如薏米、红豆、冬瓜、山药、白萝卜、芹菜等。少吃油腻甜食，戒烟限酒。',
+      exercise: '增加运动量，如快走、慢跑、游泳、跳绳等，有助于祛湿化痰。每周至少5次，每次30分钟以上。',
+      lifestyle: '控制体重，避免久坐，保持室内通风干燥。梅雨季节注意防潮。'
+    }
+  },
+  '湿热质': {
+    name: '湿热质', color: '#FFA07A',
+    intro: '湿热质人群体内湿热蕴结，主要表现为面部油腻，口苦口干，易长痤疮，小便短黄，大便黏滞或有不尽感。',
+    footbath: {
+      title: '清热祛湿足浴包',
+      ingredients: [
+        { name: '黄柏', amount: '20g', effect: '清热燥湿' },
+        { name: '苦参', amount: '20g', effect: '清热利湿' },
+        { name: '土茯苓', amount: '30g', effect: '解毒除湿' },
+        { name: '薏苡仁', amount: '30g', effect: '健脾利湿' },
+        { name: '连翘', amount: '15g', effect: '清热解毒' },
+        { name: '薄荷', amount: '10g', effect: '疏散风热' }
+      ],
+      usage: '将以上药材加水2000ml，煎煮30分钟后，取药液倒入泡脚盆中，待温度降至38-40℃时泡脚，每次20-25分钟，每周3-4次。',
+      note: '孕妇禁用；虚寒体质者慎用；泡脚后注意保暖。'
+    },
+    prescriptions: [],
+    conditioning: {
+      diet: '多食清热利湿食物，如绿豆、苦瓜、冬瓜、薏米、赤小豆、马齿苋、莲子心等。避免辛辣油腻食物，戒烟限酒。',
+      exercise: '适度运动，如跑步、游泳、瑜伽等，多出汗有助于排湿。运动后及时清洁皮肤。',
+      lifestyle: '避免熬夜，保持大便通畅。注意皮肤清洁，但不宜过度使用刺激性护肤品。'
+    }
+  },
+  '血瘀质': {
+    name: '血瘀质', color: '#CD5C5C',
+    intro: '血瘀质人群血液运行不畅，主要表现为面色暗沉或有瘀斑，身体固定疼痛，容易健忘，舌下静脉曲张。',
+    footbath: {
+      title: '活血化瘀足浴包',
+      usage: '将以上药材加水2000ml，煎煮30分钟后，取药液倒入泡脚盆中，待温度降至40-42℃时泡脚（水温适中偏热有助于活血），每次25-30分钟，每周3-4次。',
+      note: '孕妇禁用；月经量多者经期停用；有出血倾向者慎用。',
+      categories: [
+        { name: '黎药基础（君药）', items: [{ name: '丝瓜络', amount: '15g', effect: '通络活血' }, { name: '透骨草', amount: '15g', effect: '祛风除湿' }] },
+        { name: '专属调理（臣佐药）', items: [{ name: '山楂', amount: '5g', effect: '消食化瘀' }, { name: '玫瑰花', amount: '6g', effect: '行气解郁' }, { name: '红花', amount: '2g', effect: '活血通经' }, { name: '当归', amount: '4g', effect: '补血活血' }] },
+        { name: '防虫防潮（使药）', items: [{ name: '艾叶', amount: '2g', effect: '温经驱虫' }, { name: '陈皮', amount: '1g', effect: '理气防潮' }] }
+      ]
+    },
+    prescriptions: [],
+    conditioning: {
+      diet: '多食活血化瘀食物，如山楂、桃仁、红花、当归、川芎、黑木耳、洋葱、大蒜、玫瑰花茶等。',
+      exercise: '适当运动促进气血运行，如散步、太极拳、瑜伽、游泳等。避免久坐不动。',
+      lifestyle: '保持心情舒畅，避免情绪抑郁。可按摩血海、三阴交、足三里等穴位促进血液循环。'
+    }
+  },
+  '气郁质': {
+    name: '气郁质', color: '#9370DB',
+    intro: '气郁质人群气机郁滞，主要表现为情绪低落，焦虑烦躁，容易失眠，善太息，胸胁胀闷。',
+    footbath: null,
+    prescriptions: [
+      { title: '疏肝解郁茶', ingredients: ['陈皮 10g', '佛手 10g', '玫瑰花 6g', '代代花 6g', '甘草 3g'], usage: '将以上药材放入杯中，用开水冲泡，盖闷10分钟后饮用。每日1-2剂，可反复冲泡。' },
+      { title: '理气安神足浴', ingredients: ['柴胡 15g', '香附 15g', '郁金 15g', '合欢皮 20g', '夜交藤 20g', '石菖蒲 10g'], usage: '将以上药材加水2000ml，煎煮30分钟后，取药液泡脚，每次20-25分钟，每晚睡前1小时进行。' }
+    ],
+    conditioning: {
+      diet: '多食疏肝理气食物，如陈皮、佛手、玫瑰花、茉莉花、橙子、柑橘、山楂等。避免酸涩食物，如乌梅、杨梅等。',
+      exercise: '选择放松身心的运动，如瑜伽、冥想、太极、旅游、听音乐等。多进行户外活动，接触阳光。',
+      lifestyle: '保持心情舒畅，多与人交流，培养兴趣爱好。睡前避免情绪激动，可听轻音乐助眠。'
+    }
+  },
+  '特禀质': {
+    name: '特禀质', color: '#20B2AA',
+    intro: '特禀质人群先天禀赋异常，容易过敏，如过敏性鼻炎、哮喘、荨麻疹、湿疹等过敏性疾病。',
+    footbath: null,
+    prescriptions: [
+      { title: '固表抗敏足浴', ingredients: ['黄芪 30g', '防风 15g', '白术 15g', '桂枝 10g', '白芍 15g', '徐长卿 15g'], usage: '将以上药材加水2000ml，煎煮30分钟后，取药液泡脚，每次20-25分钟，每周3-4次。' },
+      { title: '过敏体质调理茶', ingredients: ['黄芪 15g', '防风 10g', '乌梅 10g', '红枣 5枚', '甘草 5g'], usage: '将以上药材放入杯中，用开水冲泡，盖闷15分钟后饮用。每日1剂，可反复冲泡。' }
+    ],
+    conditioning: {
+      diet: '饮食清淡，多食益气固表食物，如黄芪、山药、红枣、蜂蜜等。避免已知过敏原，如海鲜、坚果、芒果等。',
+      exercise: '适度运动增强体质，如散步、慢跑、太极拳等。避免在花粉多、尘螨多的环境中运动。',
+      lifestyle: '注意环境清洁，定期更换床上用品。花粉季节减少外出，必要时佩戴口罩。保持情绪稳定。'
+    }
+  }
+};
+
+// 膝关节测评题目
+const kneeQuestions = [
+  { id: 1, question: '您的膝关节是否有疼痛？', options: ['完全不痛', '偶尔轻微疼痛', '经常疼痛', '持续剧烈疼痛'] },
+  { id: 2, question: '您的膝关节是否有肿胀？', options: ['完全不肿', '偶尔轻微肿胀', '经常肿胀', '持续肿胀'] },
+  { id: 3, question: '您的膝关节活动时是否有僵硬感？', options: ['完全没有', '偶尔轻微僵硬', '经常僵硬', '严重僵硬'] },
+  { id: 4, question: '上下楼梯时膝关节是否疼痛？', options: ['完全不痛', '偶尔轻微疼痛', '经常疼痛', '无法上下楼梯'] },
+  { id: 5, question: '您能正常蹲下和站起吗？', options: ['完全正常', '有点困难', '比较困难', '无法完成'] },
+  { id: 6, question: '您的膝关节是否有响声？', options: ['完全没有', '偶尔有', '经常有', '每次活动都有'] },
+  { id: 7, question: '长时间走路后膝关节是否会加重不适？', options: ['完全不会', '偶尔会', '经常会', '每次都会'] },
+  { id: 8, question: '您的膝关节是否有发热感？', options: ['完全没有', '偶尔轻微发热', '经常发热', '持续发热'] },
+  { id: 9, question: '天气变化时膝关节是否会感觉不适？', options: ['完全不会', '偶尔会', '经常会', '每次都会'] },
+  { id: 10, question: '您能正常跑步或跳跃吗？', options: ['完全可以', '有点困难', '比较困难', '无法进行'] },
+  { id: 11, question: '您的膝关节是否有麻木或刺痛感？', options: ['完全没有', '偶尔有', '经常有', '持续有'] },
+  { id: 12, question: '您的膝关节外观是否有畸形？', options: ['完全正常', '轻微畸形', '明显畸形', '严重畸形'] }
+];
+
+// 膝关节结果等级
+const kneeResultLevels = [
+  { minScore: 0, maxScore: 12, title: '轻度不适', bgColor: '#90EE90', description: '您的膝关节状况良好，但建议注意日常保养和适度运动。' },
+  { minScore: 13, maxScore: 28, title: '中度损伤', bgColor: '#FFD700', description: '您的膝关节有一定程度的损伤，建议减少剧烈运动，加强康复锻炼。' },
+  { minScore: 29, maxScore: 48, title: '重度风险', bgColor: '#FF6347', description: '您的膝关节损伤较严重，建议及时就医检查，避免加重损伤。' }
+];
+
+// ===== 全局状态 =====
+let currentPage = 'index';
+let pageHistory = [];
+let constitutionAnswers = {};
+let kneeAnswers = {};
+let deleteIndex = -1;
+let currentQuestionIndex = 0; // 当前体质测评题目索引
+
+// ===== 页面切换函数 =====
+function switchTab(pageId) {
+  hideAllPages();
+  document.getElementById('page-' + pageId).classList.remove('page-hidden');
+  currentPage = pageId;
+  
+  document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
+  document.querySelector('.tab-item[onclick="switchTab(\'' + pageId + '\')"]').classList.add('active');
+  
+  pageHistory = [];
+  
+  if (pageId === 'my') {
+    loadUserInfo();
+    loadTestRecords();
+  }
+}
+
+function goToPage(pageId) {
+  hideAllPages();
+  document.getElementById('page-' + pageId).classList.remove('page-hidden');
+  pageHistory.push(currentPage);
+  currentPage = pageId;
+  
+  document.querySelector('.tab-bar').style.display = 'none';
+  
+  if (pageId === 'constitution-list') {
+    loadConstitutionList();
+  }
+}
+
+function goBack() {
+  if (pageHistory.length > 0) {
+    const prevPage = pageHistory.pop();
+    hideAllPages();
+    document.getElementById('page-' + prevPage).classList.remove('page-hidden');
+    currentPage = prevPage;
+    
+    if (['index', 'knee', 'science', 'my'].includes(currentPage)) {
+      document.querySelector('.tab-bar').style.display = 'flex';
+    }
+  } else {
+    switchTab('index');
+  }
+}
+
+function hideAllPages() {
+  document.querySelectorAll('.page-container').forEach(page => page.classList.add('page-hidden'));
+}
+
+// ===== Toast提示 =====
+function showToast(message, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast toast-' + type;
+  toast.classList.remove('page-hidden');
+  setTimeout(() => {
+    toast.classList.add('page-hidden');
+  }, 2000);
+}
+
+// ===== 体质测评 =====
+function startConstitutionTest() {
+  constitutionAnswers = {};
+  currentQuestionIndex = 0;
+  goToPage('test');
+  loadConstitutionQuestion(0);
+}
+
+function loadConstitutionQuestion(index) {
+  const question = questions[index];
+  if (!question) return;
+  
+  currentQuestionIndex = index;
+  
+  document.getElementById('questionTag').textContent = question.type;
+  document.getElementById('questionNumber').textContent = '第 ' + (index + 1) + ' 题';
+  document.getElementById('questionText').textContent = question.text;
+  
+  const progress = ((index + 1) / questions.length) * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+  document.getElementById('progressText').textContent = (index + 1) + ' / ' + questions.length;
+  
+  const options = document.querySelectorAll('.test-page .option-item');
+  options.forEach((opt, i) => {
+    opt.classList.remove('selected');
+    if (constitutionAnswers[index] === (i + 1)) {
+      opt.classList.add('selected');
+    }
+  });
+  
+  document.getElementById('prevBtn').disabled = index === 0;
+  const hasAnswer = constitutionAnswers[index] !== undefined;
+  document.getElementById('nextBtn').disabled = !hasAnswer;
+  document.getElementById('nextBtn').textContent = index === questions.length - 1 ? '查看结果' : '下一题';
+}
+
+function selectConstitutionAnswer(value) {
+  constitutionAnswers[currentQuestionIndex] = value;
+  
+  const options = document.querySelectorAll('.test-page .option-item');
+  options.forEach((opt, i) => {
+    opt.classList.remove('selected');
+    if (constitutionAnswers[currentQuestionIndex] === (i + 1)) {
+      opt.classList.add('selected');
+    }
+  });
+  
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextConstitutionQuestion() {
+  if (currentQuestionIndex < questions.length - 1) {
+    loadConstitutionQuestion(currentQuestionIndex + 1);
+  } else {
+    calculateConstitutionResult();
+  }
+}
+
+function prevConstitutionQuestion() {
+  if (currentQuestionIndex > 0) {
+    loadConstitutionQuestion(currentQuestionIndex - 1);
+  }
+}
+
+function calculateConstitutionResult() {
+  const scores = {};
+  Object.keys(constitutionConfig).forEach(type => { scores[type] = 0; });
+  
+  questions.forEach((q, index) => {
+    let score = constitutionAnswers[index];
+    if (q.reverse) score = 6 - score;
+    scores[q.type] += score;
+  });
+  
+  const transformedScores = {};
+  Object.keys(constitutionConfig).forEach(type => {
+    const config = constitutionConfig[type];
+    const maxScore = config.itemCount * 5;
+    transformedScores[type] = Math.round((scores[type] / maxScore) * 100);
+  });
+  
+  let primaryConstitution = '平和质';
+  let maxScore = transformedScores['平和质'];
+  
+  Object.keys(transformedScores).forEach(type => {
+    if (transformedScores[type] > maxScore) {
+      maxScore = transformedScores[type];
+      primaryConstitution = type;
+    }
+  });
+  
+  const balanceScore = transformedScores['平和质'];
+  const isBalance = balanceScore >= 60;
+  
+  const result = {
+    date: new Date().toLocaleString('zh-CN'),
+    scores: scores,
+    transformedScores: transformedScores,
+    primaryConstitution: primaryConstitution,
+    isBalance: isBalance,
+    answers: constitutionAnswers
+  };
+  
+  saveConstitutionResult(result);
+  showConstitutionResult(result);
+}
+
+function saveConstitutionResult(result) {
+  const history = JSON.parse(localStorage.getItem('constitution_history') || '[]');
+  history.unshift(result);
+  localStorage.setItem('constitution_history', JSON.stringify(history));
+  
+  const allRecords = JSON.parse(localStorage.getItem('test_records') || '[]');
+  allRecords.unshift({
+    id: Date.now(),
+    type: '体质测评',
+    time: new Date().toLocaleString('zh-CN'),
+    briefResult: result.primaryConstitution + (result.isBalance ? '（平和）' : ''),
+    fullResult: result
+  });
+  localStorage.setItem('test_records', JSON.stringify(allRecords));
+}
+
+function showConstitutionResult(result) {
+  goToPage('result');
+  
+  document.getElementById('resultDate').textContent = result.date;
+  
+  const plan = constitutionHealthPlans[result.primaryConstitution];
+  document.getElementById('constitutionCircle').style.background = plan.color;
+  document.getElementById('constitutionCircle').querySelector('.constitution-name').textContent = result.primaryConstitution;
+  document.getElementById('constitutionLevel').textContent = result.isBalance ? '是' : '否';
+  document.getElementById('constitutionLevel').style.color = plan.color;
+  
+  let conclusion = `您的体质为${result.primaryConstitution}。`;
+  if (result.isBalance) {
+    conclusion += '身体状态良好，阴阳平衡，气血调和。';
+  } else {
+    conclusion += plan.intro.slice(0, 30) + '...';
+  }
+  document.getElementById('conclusionText').textContent = conclusion;
+  
+  const chartContent = document.getElementById('chartContent');
+  chartContent.innerHTML = '';
+  
+  Object.keys(result.transformedScores).forEach(type => {
+    const score = result.transformedScores[type];
+    const color = constitutionConfig[type].color;
+    chartContent.innerHTML += `
+      <div class="chart-item">
+        <span class="chart-label">${type}</span>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="width: ${score}%; background: ${color}"></div>
+        </div>
+        <span class="chart-score">${score}分</span>
+      </div>
+    `;
+  });
+  
+  const healthPlanCard = document.getElementById('healthPlanCard');
+  healthPlanCard.style.borderLeftColor = plan.color;
+  healthPlanCard.innerHTML = `
+    <div class="plan-header">
+      <div class="plan-dot" style="background: ${plan.color}"></div>
+      <span class="plan-name">${plan.name}养生方案</span>
+    </div>
+    <span class="plan-intro">${plan.intro}</span>
+    ${plan.footbath ? `
+      <div class="plan-detail">
+        <div class="detail-title">
+          <span class="detail-icon">🛁</span>
+          <text>${plan.footbath.title}</text>
+        </div>
+        ${plan.footbath.categories ? `
+          <div class="prescription-categories">
+            ${plan.footbath.categories.map(cat => `
+              <div class="category-section">
+                <div class="category-title">
+                  <span class="category-badge">${cat.name}</span>
+                </div>
+                <div class="category-ingredients">
+                  ${cat.items.map(item => `
+                    <div class="ingredient-box">
+                      <div class="ingredient-info">
+                        <span class="ingredient-name">${item.name}</span>
+                        <span class="ingredient-amount">${item.amount}</span>
+                      </div>
+                      <span class="ingredient-effect">${item.effect}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="simple-ingredients">
+            <span class="simple-label">药材组成：</span>
+            ${plan.footbath.ingredients.map(item => `
+              <div class="simple-ingredient-item">
+                <span class="simple-name">${item.name}</span>
+                <span class="simple-amount">${item.amount}</span>
+              </div>
+            `).join('')}
+          </div>
+        `}
+        <span class="usage-text">使用方法：${plan.footbath.usage}</span>
+        <span class="note-text">⚠️ ${plan.footbath.note}</span>
+      </div>
+    ` : ''}
+    ${plan.prescriptions && plan.prescriptions.length > 0 ? `
+      <div class="plan-detail">
+        <div class="detail-title">
+          <span class="detail-icon">🍵</span>
+          <text>调理方案</text>
+        </div>
+        ${plan.prescriptions.map(prescription => `
+          <div class="prescription-box">
+            <span class="prescription-title">${prescription.title}</span>
+            <div class="prescription-desc">
+              <span class="prescription-ing-list">
+                <span class="prescription-ing">配方：${prescription.ingredients.join('、')}</span>
+              </span>
+            </div>
+            <div class="prescription-usage">
+              <span class="usage-label">使用方法：</span>
+              <span class="usage-text">${prescription.usage}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+    <div class="plan-detail">
+      <div class="detail-title">
+        <span class="detail-icon">🍽️</span>
+        <text>饮食调理</text>
+      </div>
+      <span class="detail-text">${plan.conditioning.diet}</span>
+    </div>
+    <div class="plan-detail">
+      <div class="detail-title">
+        <span class="detail-icon">🏃</span>
+        <text>运动建议</text>
+      </div>
+      <span class="detail-text">${plan.conditioning.exercise}</span>
+    </div>
+    <div class="plan-detail">
+      <div class="detail-title">
+        <span class="detail-icon">😴</span>
+        <text>作息养生</text>
+      </div>
+      <span class="detail-text">${plan.conditioning.lifestyle}</span>
+    </div>
+  `;
+}
+
+// ===== 体质历史记录 =====
+function loadConstitutionHistory() {
+  const history = JSON.parse(localStorage.getItem('constitution_history') || '[]');
+  document.getElementById('recordCount').textContent = '共 ' + history.length + ' 条记录';
+  
+  const historyList = document.getElementById('historyList');
+  const emptyState = document.getElementById('emptyState');
+  
+  if (history.length === 0) {
+    historyList.innerHTML = '';
+    emptyState.classList.remove('page-hidden');
+  } else {
+    emptyState.classList.add('page-hidden');
+    historyList.innerHTML = history.map((item, index) => {
+      const primaryName = getPrimaryConstitution(item);
+      const primaryColor = constitutionConfig[primaryName].color;
+      const topThree = getTopThreeScores(item);
+      
+      return `
+        <div class="history-item">
+          <div class="history-content" onclick="viewHistoryResult(${index})">
+            <div class="result-summary">
+              <div class="constitution-dot-large" style="background: ${primaryColor}">
+                <span class="constitution-char">${getConstitutionChar(primaryName)}</span>
+              </div>
+              <div class="result-info">
+                <span class="result-constitution">${primaryName}</span>
+                <span class="result-date">${item.date}</span>
+              </div>
+            </div>
+            <div class="result-scores">
+              <div class="mini-chart">
+                ${topThree.map(s => `<div class="mini-bar" style="background: ${s.color}"></div>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="history-actions">
+            <button class="action-btn edit-btn" onclick="viewHistoryResult(${index})">查看</button>
+            <button class="action-btn delete-btn" onclick="showDeleteConfirm(${index})">删除</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function getPrimaryConstitution(item) {
+  const scores = item.transformedScores;
+  let maxType = '平和质';
+  let maxScore = scores['平和质'];
+  Object.keys(scores).forEach(type => {
+    if (scores[type] > maxScore) {
+      maxScore = scores[type];
+      maxType = type;
+    }
+  });
+  return maxType;
+}
+
+function getConstitutionChar(name) {
+  const chars = {
+    '平和质': '平', '气虚质': '气', '阳虚质': '阳', '阴虚质': '阴',
+    '痰湿质': '痰', '湿热质': '湿', '血瘀质': '瘀', '气郁质': '郁', '特禀质': '特'
+  };
+  return chars[name] || name.charAt(0);
+}
+
+function getTopThreeScores(item) {
+  const scores = item.transformedScores;
+  return Object.keys(scores).map(type => ({
+    type: type,
+    score: scores[type],
+    color: constitutionConfig[type].color
+  })).sort((a, b) => b.score - a.score).slice(0, 3);
+}
+
+function viewHistoryResult(index) {
+  const history = JSON.parse(localStorage.getItem('constitution_history') || '[]');
+  const result = history[index];
+  showConstitutionResult(result);
+}
+
+function showDeleteConfirm(index) {
+  deleteIndex = index;
+  document.getElementById('confirmModal').classList.remove('page-hidden');
+}
+
+function hideConfirmModal() {
+  document.getElementById('confirmModal').classList.add('page-hidden');
+  deleteIndex = -1;
+}
+
+function confirmDelete() {
+  const history = JSON.parse(localStorage.getItem('constitution_history') || '[]');
+  history.splice(deleteIndex, 1);
+  localStorage.setItem('constitution_history', JSON.stringify(history));
+  
+  const allRecords = JSON.parse(localStorage.getItem('test_records') || '[]');
+  const filtered = allRecords.filter(r => r.type !== '体质测评' || history.find(h => h.date === r.time) !== undefined);
+  localStorage.setItem('test_records', JSON.stringify(filtered));
+  
+  hideConfirmModal();
+  loadConstitutionHistory();
+  showToast('删除成功', 'success');
+}
+
+// ===== 膝关节测评 =====
+function startKneeTest() {
+  kneeAnswers = {};
+  goToPage('knee-test');
+  loadKneeQuestion(0);
+}
+
+function loadKneeQuestion(index) {
+  const question = kneeQuestions[index];
+  if (!question) return;
+  
+  document.getElementById('kneeQuestionNumber').textContent = '第 ' + (index + 1) + ' 题';
+  document.getElementById('kneeQuestionText').textContent = question.question;
+  
+  const options = document.querySelectorAll('.knee-test-page .option-item');
+  options.forEach((opt, i) => {
+    opt.querySelector('.option-text').textContent = question.options[i];
+    opt.classList.remove('selected');
+    if (kneeAnswers[index] === i) {
+      opt.classList.add('selected');
+    }
+  });
+  
+  const progress = ((index + 1) / kneeQuestions.length) * 100;
+  document.getElementById('kneeProgressFill').style.width = progress + '%';
+  document.getElementById('kneeProgressText').textContent = (index + 1) + ' / ' + kneeQuestions.length;
+  
+  document.getElementById('kneePrevBtn').disabled = index === 0;
+  const hasAnswer = kneeAnswers[index] !== undefined;
+  document.getElementById('kneeNextBtn').disabled = !hasAnswer;
+  document.getElementById('kneeNextBtn').textContent = index === kneeQuestions.length - 1 ? '查看结果' : '下一题';
+}
+
+function selectKneeAnswer(value) {
+  let currentIdx = -1;
+  for (let i = kneeQuestions.length - 1; i >= 0; i--) {
+    if (kneeAnswers[i] !== undefined) {
+      currentIdx = i;
+      break;
+    }
+  }
+  
+  if (currentIdx === -1) {
+    currentIdx = 0;
+  } else if (currentIdx < kneeQuestions.length - 1 && kneeAnswers[currentIdx + 1] === undefined) {
+    currentIdx++;
+  }
+  
+  kneeAnswers[currentIdx] = value;
+  
+  const options = document.querySelectorAll('.knee-test-page .option-item');
+  options.forEach((opt, i) => {
+    opt.classList.remove('selected');
+    if (kneeAnswers[currentIdx] === i) {
+      opt.classList.add('selected');
+    }
+  });
+  
+  document.getElementById('kneeNextBtn').disabled = false;
+}
+
+function nextKneeQuestion() {
+  let nextIdx = -1;
+  for (let i = 0; i < kneeQuestions.length; i++) {
+    if (kneeAnswers[i] === undefined) {
+      nextIdx = i;
+      break;
+    }
+  }
+  
+  if (nextIdx === -1) {
+    calculateKneeResult();
+  } else {
+    loadKneeQuestion(nextIdx);
+  }
+}
+
+function prevKneeQuestion() {
+  let prevIdx = -1;
+  for (let i = kneeQuestions.length - 1; i >= 0; i--) {
+    if (kneeAnswers[i] !== undefined) {
+      prevIdx = i - 1;
+      break;
+    }
+  }
+  
+  if (prevIdx >= 0) {
+    loadKneeQuestion(prevIdx);
+  }
+}
+
+function calculateKneeResult() {
+  let totalScore = 0;
+  Object.values(kneeAnswers).forEach(score => { totalScore += score; });
+  
+  let level = kneeResultLevels[0];
+  for (const l of kneeResultLevels) {
+    if (totalScore >= l.minScore && totalScore <= l.maxScore) {
+      level = l;
+      break;
+    }
+  }
+  
+  const result = {
+    totalScore: totalScore,
+    level: level,
+    answers: kneeAnswers,
+    time: new Date().toLocaleString('zh-CN')
+  };
+  
+  const allRecords = JSON.parse(localStorage.getItem('test_records') || '[]');
+  allRecords.unshift({
+    id: Date.now(),
+    type: '膝关节测评',
+    time: result.time,
+    briefResult: level.title,
+    fullResult: result
+  });
+  localStorage.setItem('test_records', JSON.stringify(allRecords));
+  
+  showKneeResult(result);
+}
+
+function showKneeResult(result) {
+  goToPage('knee-result');
+  
+  const header = document.getElementById('kneeResultHeader');
+  header.style.background = `linear-gradient(135deg, ${result.level.bgColor}, ${adjustColor(result.level.bgColor, -30)})`;
+  
+  document.getElementById('kneeResultTitle').textContent = result.level.title;
+  document.getElementById('kneeResultScore').textContent = '综合得分：' + result.totalScore + ' / 48';
+  document.getElementById('kneeResultDesc').textContent = result.level.description;
+  
+  const westernContent = document.getElementById('westernContent');
+  westernContent.innerHTML = `
+    <div class="advice-item">
+      <span class="advice-title">休息与活动</span>
+      <span class="advice-desc">避免过度使用膝关节，适当休息。进行适度的关节活动和肌肉锻炼，增强膝关节稳定性。</span>
+    </div>
+    <div class="advice-item">
+      <span class="advice-title">体重管理</span>
+      <span class="advice-desc">控制体重减轻关节负担，避免肥胖对膝关节造成过大压力。</span>
+    </div>
+    <div class="advice-item">
+      <span class="advice-title">鞋具选择</span>
+      <span class="advice-desc">选择有良好支撑和缓冲的鞋子，避免穿高跟鞋或不合适的鞋具。</span>
+    </div>
+    <div class="advice-item">
+      <span class="advice-title">就医提示</span>
+      <span class="advice-desc">如果疼痛持续或加重，建议及时就医检查，如X光、MRI等。</span>
+    </div>
+  `;
+  
+  const tcmContent = document.getElementById('tcmContent');
+  tcmContent.innerHTML = `
+    <div class="tcm-item">
+      <span class="tcm-icon">♨️</span>
+      <div class="tcm-content">
+        <span class="tcm-title">热敷疗法</span>
+        <span class="tcm-desc">使用热水袋或热毛巾热敷膝关节，每次15-20分钟，有助于温经散寒，促进血液循环。</span>
+      </div>
+    </div>
+    <div class="tcm-item">
+      <span class="tcm-icon">🌿</span>
+      <div class="tcm-content">
+        <span class="tcm-title">中药足浴</span>
+        <span class="tcm-desc">使用活血化瘀的中药泡脚，如艾叶、红花、当归等，有助于改善下肢血液循环。</span>
+      </div>
+    </div>
+    <div class="tcm-item">
+      <span class="tcm-icon">🔥</span>
+      <div class="tcm-content">
+        <span class="tcm-title">艾灸调理</span>
+        <span class="tcm-desc">艾灸膝眼、足三里、血海等穴位，每次10-15分钟，每周2-3次。</span>
+      </div>
+    </div>
+  `;
+  
+  const careContent = document.getElementById('careContent');
+  careContent.innerHTML = `
+    <div class="care-item">
+      <span class="care-dot">●</span>
+      <span class="care-text">注意关节保暖，避免受凉受潮，天气变化时及时增添衣物。</span>
+    </div>
+    <div class="care-item">
+      <span class="care-dot">●</span>
+      <span class="care-text">避免长时间站立和行走，减少上下楼梯次数，避免搬重物。</span>
+    </div>
+    <div class="care-item">
+      <span class="care-dot">●</span>
+      <span class="care-text">选择游泳、骑自行车等对关节压力小的运动，避免跑步、跳跃等剧烈运动。</span>
+    </div>
+    <div class="care-item">
+      <span class="care-dot">●</span>
+      <span class="care-text">保持正确的坐姿和站姿，避免关节过度弯曲或扭曲。</span>
+    </div>
+  `;
+}
+
+function adjustColor(color, amount) {
+  const hex = color.replace('#', '');
+  const num = parseInt(hex, 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+// ===== 膝关节历史记录 =====
+function loadKneeHistory() {
+  const allRecords = JSON.parse(localStorage.getItem('test_records') || '[]');
+  const kneeRecords = allRecords
+    .filter(r => r.type === '膝关节测评')
+    .sort((a, b) => new Date(b.time) - new Date(a.time))
+    .map(r => {
+      const totalScore = r.fullResult.totalScore;
+      const level = kneeResultLevels.find(l => totalScore >= l.minScore && totalScore <= l.maxScore) || kneeResultLevels[0];
+      return {
+        ...r,
+        level: level,
+        percentage: Math.round((totalScore / 48) * 100)
+      };
+    });
+  
+  const list = document.getElementById('kneeHistoryList');
+  const empty = document.getElementById('kneeEmptyState');
+  
+  if (kneeRecords.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('page-hidden');
+  } else {
+    empty.classList.add('page-hidden');
+    list.innerHTML = kneeRecords.map(record => `
+      <div class="record-item" onclick="viewKneeDetail('${record.id}')">
+        <span class="record-icon">🦵</span>
+        <div class="record-content">
+          <div class="record-header">
+            <span class="record-type">膝关节测评</span>
+            <span class="record-score">${record.level.title}</span>
+          </div>
+          <span class="record-time">${record.time}</span>
+          <div class="record-result-bar">
+            <div class="result-progress" style="width: ${record.percentage}%; background: ${record.level.bgColor};"></div>
+          </div>
+          <span class="record-desc">${record.level.description}</span>
+        </div>
+        <span class="record-arrow">›</span>
+      </div>
+    `).join('');
+  }
+}
+
+function viewKneeDetail(id) {
+  const allRecords = JSON.parse(localStorage.getItem('test_records') || '[]');
+  const record = allRecords.find(r => r.id === parseInt(id));
+  if (record) {
+    showKneeResult(record.fullResult);
+  }
+}
+
+// ===== 体质科普列表 =====
+function loadConstitutionList() {
+  const grid = document.getElementById('constitutionListGrid');
+  grid.innerHTML = Object.keys(constitutionHealthPlans).map(name => {
+    const plan = constitutionHealthPlans[name];
+    const chars = {
+      '平和质': '平', '气虚质': '气', '阳虚质': '阳', '阴虚质': '阴',
+      '痰湿质': '痰', '湿热质': '湿', '血瘀质': '瘀', '气郁质': '郁', '特禀质': '特'
+    };
+    return `
+      <div class="constitution-card" onclick="viewConstitutionDetail('${name}')">
+        <div class="card-icon" style="background: ${plan.color}">
+          <span class="icon-text">${chars[name] || name.charAt(0)}</span>
+        </div>
+        <span class="card-name">${name}</span>
+        <div class="card-indicator">
+          <span class="indicator-text">点击查看详情</span>
+          <span class="indicator-arrow">›</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function viewConstitutionDetail(type) {
+  const plan = constitutionHealthPlans[type];
+  if (!plan) return;
+  
+  goToPage('constitution-detail');
+  
+  document.getElementById('constitutionDetailHeader').style.background = plan.color;
+  document.getElementById('constitutionDetailName').textContent = plan.name;
+  
+  const content = document.getElementById('constitutionDetailContent');
+  content.innerHTML = `
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📖</span>
+        <span class="section-title">体质简介</span>
+      </div>
+      <span class="section-text">${plan.intro}</span>
+    </div>
+    ${plan.footbath ? `
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🛁</span>
+          <span class="section-title">足浴包配方</span>
+        </div>
+        <div class="footbath-card">
+          <span class="prescription-title">${plan.footbath.title}</span>
+          <div class="divider-dashed"></div>
+          ${plan.footbath.categories ? `
+            <div class="categories-container">
+              ${plan.footbath.categories.map(cat => `
+                <div class="category-section">
+                  <div class="category-header">
+                    <span class="category-title">${cat.name}</span>
+                  </div>
+                  <div class="ingredients-grid">
+                    ${cat.items.map(item => `
+                      <div class="ingredient-card">
+                        <span class="card-name">${item.name}</span>
+                        <span class="card-amount">${item.amount}</span>
+                        <span class="card-effect">${item.effect}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="simple-ingredients">
+              <span class="simple-label">药材组成：</span>
+              ${plan.footbath.ingredients.map(item => `
+                <div class="simple-item">
+                  <span class="simple-name">${item.name}</span>
+                  <span class="simple-amount">${item.amount}</span>
+                  <span class="simple-effect">${item.effect}</span>
+                </div>
+              `).join('')}
+            </div>
+          `}
+          <div class="usage-box">
+            <span class="usage-label">使用方法：</span>
+            <span class="usage-text">${plan.footbath.usage}</span>
+          </div>
+          <div class="warning-box">
+            <span class="warning-text">⚠️ ${plan.footbath.note}</span>
+          </div>
+        </div>
+      </div>
+    ` : ''}
+    ${plan.prescriptions && plan.prescriptions.length > 0 ? `
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🍵</span>
+          <span class="section-title">调理方案</span>
+        </div>
+        ${plan.prescriptions.map(prescription => `
+          <div class="prescription-box">
+            <span class="prescription-name">${prescription.title}</span>
+            <div class="prescription-content">
+              <span class="prescription-label">配方：</span>
+              <span class="prescription-text">${prescription.ingredients.join('、')}</span>
+            </div>
+            <div class="prescription-usage">
+              <span class="usage-label">使用方法：</span>
+              <span class="usage-text">${prescription.usage}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🍽️</span>
+        <span class="section-title">饮食调理</span>
+      </div>
+      <span class="section-text">${plan.conditioning.diet}</span>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🏃</span>
+        <span class="section-title">运动建议</span>
+      </div>
+      <span class="section-text">${plan.conditioning.exercise}</span>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">😴</span>
+        <span class="section-title">作息养生</span>
+      </div>
+      <span class="section-text">${plan.conditioning.lifestyle}</span>
+    </div>
+  `;
+}
+
+// ===== 用户信息管理 =====
+function loadUserInfo() {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  document.getElementById('userName').textContent = userInfo.name || '用户ID';
+  document.getElementById('userGender').textContent = userInfo.gender || '-';
+  document.getElementById('userAge').textContent = (userInfo.age || '-') + ' 岁';
+  document.getElementById('userHeight').textContent = (userInfo.height || '-') + ' cm';
+  document.getElementById('userWeight').textContent = (userInfo.weight || '-') + ' kg';
+}
+
+function uploadAvatar() {
+  showToast('头像上传功能开发中', 'info');
+}
+
+function editUserInfo() {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  
+  document.getElementById('editName').value = userInfo.name || '';
+  document.getElementById('editAge').value = userInfo.age || '';
+  document.getElementById('editHeight').value = userInfo.height || '';
+  document.getElementById('editWeight').value = userInfo.weight || '';
+  
+  document.getElementById('genderMale').classList.remove('selected');
+  document.getElementById('genderFemale').classList.remove('selected');
+  if (userInfo.gender === '男') {
+    document.getElementById('genderMale').classList.add('selected');
+  } else if (userInfo.gender === '女') {
+    document.getElementById('genderFemale').classList.add('selected');
+  }
+  
+  document.getElementById('editModal').classList.remove('page-hidden');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.add('page-hidden');
+}
+
+function selectGender(gender) {
+  document.getElementById('genderMale').classList.remove('selected');
+  document.getElementById('genderFemale').classList.remove('selected');
+  
+  if (gender === '男') {
+    document.getElementById('genderMale').classList.add('selected');
+  } else {
+    document.getElementById('genderFemale').classList.add('selected');
+  }
+}
+
+function saveUserInfo() {
+  const userInfo = {
+    name: document.getElementById('editName').value,
+    gender: document.getElementById('genderMale').classList.contains('selected') ? '男' : '女',
+    age: document.getElementById('editAge').value,
+    height: document.getElementById('editHeight').value,
+    weight: document.getElementById('editWeight').value
+  };
+  
+  localStorage.setItem('userInfo', JSON.stringify(userInfo));
+  loadUserInfo();
+  closeModal();
+  showToast('保存成功', 'success');
+}
+
+// ===== 通用测评记录 =====
+function loadTestRecords() {
+  const records = JSON.parse(localStorage.getItem('test_records') || '[]');
+  const sortedRecords = records.sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
+  
+  document.getElementById('testRecordCount').textContent = records.length + ' 条记录';
+  
+  const list = document.getElementById('testRecordsList');
+  const empty = document.getElementById('testRecordsEmpty');
+  
+  if (sortedRecords.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('page-hidden');
+  } else {
+    empty.classList.add('page-hidden');
+    list.innerHTML = sortedRecords.map(record => `
+      <div class="record-item" onclick="viewRecordDetail('${record.type}', '${record.id}')">
+        <span class="record-icon">${record.type === '体质测评' ? '🧘' : '🦵'}</span>
+        <div class="record-content">
+          <div class="record-type">
+            <span class="type-text">${record.type}</span>
+            <span class="record-time">${record.time}</span>
+          </div>
+          <span class="record-result">${record.briefResult}</span>
+        </div>
+        <span class="record-arrow">›</span>
+      </div>
+    `).join('');
+  }
+}
+
+function viewRecordDetail(type, id) {
+  const records = JSON.parse(localStorage.getItem('test_records') || '[]');
+  const record = records.find(r => r.id === parseInt(id));
+  if (record) {
+    if (type === '体质测评') {
+      showConstitutionResult(record.fullResult);
+    } else {
+      showKneeResult(record.fullResult);
+    }
+  }
+}
+
+// ===== 页面初始化 =====
+document.addEventListener('DOMContentLoaded', () => {
+  switchTab('index');
+});
+
+// 当页面显示时自动加载数据
+document.getElementById('page-history').addEventListener('click', loadConstitutionHistory);
+document.getElementById('page-knee-history').addEventListener('click', loadKneeHistory);
+</script>
+</body>
+</html>
